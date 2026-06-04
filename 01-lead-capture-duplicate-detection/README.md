@@ -42,3 +42,26 @@ Is Data Valid?
            └── False → Create Lead in Airtable
                          ↓
                       Return Success Response
+
+
+## Screenshots
+
+### Complete n8n workflow
+
+![Complete n8n workflow](screenshots/01-n8n-workflow.png)
+
+### Airtable record created
+
+![Airtable record created](screenshots/02-airtable-lead-created.png)
+
+### Successful response for new lead
+
+![Successful response](screenshots/03-success-response-new-lead.png)
+
+### Duplicate lead response
+
+![Duplicate response](screenshots/04-duplicate-response.png)
+
+### Validation error response
+
+![Validation error response](screenshots/05-validation-error-response.png)
