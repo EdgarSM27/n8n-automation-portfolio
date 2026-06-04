@@ -105,7 +105,7 @@
         },
         "folderId": {
           "__rl": true,
-          "value": "12A_em1fNl97xR8EnGFLt7VjAcikH5NgU",
+          "value": "PARENT_FOLDER_ID_HERE",
           "mode": "id"
         },
         "options": {}
@@ -120,8 +120,8 @@
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "5leTZW7hFybPUkbO",
-          "name": "Google Drive account"
+          "id": "GOOGLE_DRIVE_CREDENTIAL_ID_HERE",
+          "name": "GOOGLE_DRIVE_CREDENTIAL_NAME_HERE"
         }
       }
     },
@@ -151,8 +151,8 @@
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "5leTZW7hFybPUkbO",
-          "name": "Google Drive account"
+          "id": "GOOGLE_DRIVE_CREDENTIAL_ID_HERE",
+          "name": "GOOGLE_DRIVE_CREDENTIAL_NAME_HERE"
         }
       }
     },
@@ -182,8 +182,8 @@
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "5leTZW7hFybPUkbO",
-          "name": "Google Drive account"
+          "id": "GOOGLE_DRIVE_CREDENTIAL_ID_HERE",
+          "name": "GOOGLE_DRIVE_CREDENTIAL_NAME_HERE"
         }
       }
     },
@@ -213,8 +213,8 @@
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "5leTZW7hFybPUkbO",
-          "name": "Google Drive account"
+          "id": "GOOGLE_DRIVE_CREDENTIAL_ID_HERE",
+          "name": "GOOGLE_DRIVE_CREDENTIAL_NAME_HERE"
         }
       }
     },
@@ -244,8 +244,8 @@
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "5leTZW7hFybPUkbO",
-          "name": "Google Drive account"
+          "id": "GOOGLE_DRIVE_CREDENTIAL_ID_HERE",
+          "name": "GOOGLE_DRIVE_CREDENTIAL_NAME_HERE"
         }
       }
     },
@@ -275,8 +275,8 @@
       ],
       "credentials": {
         "googleDriveOAuth2Api": {
-          "id": "5leTZW7hFybPUkbO",
-          "name": "Google Drive account"
+          "id": "GOOGLE_DRIVE_CREDENTIAL_ID_HERE",
+          "name": "GOOGLE_DRIVE_CREDENTIAL_NAME_HERE"
         }
       }
     },
