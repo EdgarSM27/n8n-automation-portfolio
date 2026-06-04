@@ -1,0 +1,467 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "client-file-automation",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "785361d5-62d5-4b76-92f0-c050b4525d5b",
+      "name": "Webhook - Recibir Cliente",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -784,
+        272
+      ],
+      "webhookId": "client-file-automation"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst data =\n  input.body && Object.keys(input.body).length > 0\n    ? input.body\n    : input.query && Object.keys(input.query).length > 0\n      ? input.query\n      : input;\n\nconst nombre = data.nombre || data.name || \"\";\nconst email = data.email || data.correo || \"\";\nconst telefono = data.telefono || data.phone || data.celular || \"\";\nconst empresa = data.empresa || data.company || \"Sin empresa\";\nconst fuente = data.fuente || data.source || \"Sin fuente\";\n\nconst clienteId = \"CLIENT-\" + Date.now();\nconst nombreLimpio = String(nombre).trim();\n\nreturn [\n  {\n    json: {\n      cliente_id: clienteId,\n      nombre: nombreLimpio,\n      email: String(email).toLowerCase().trim(),\n      telefono: String(telefono).trim(),\n      empresa: String(empresa).trim(),\n      fuente: String(fuente).trim(),\n      estado: \"Expediente creado\",\n      fecha_registro: new Date().toISOString().slice(0, 10),\n      folder_name: `EXP-${clienteId} - ${nombreLimpio}`,\n      json_original: JSON.stringify(data)\n    }\n  }\n];"
+      },
+      "id": "0a3e8d3a-036f-4255-bf7e-b262f7aaa076",
+      "name": "Normalizar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst errores = [];\n\nif (!item.nombre || item.nombre.trim().length < 2) {\n  errores.push(\"Nombre inválido o vacío\");\n}\n\nif (!item.email || !item.email.includes(\"@\")) {\n  errores.push(\"Email inválido o vacío\");\n}\n\nif (!item.telefono || item.telefono.toString().length < 7) {\n  errores.push(\"Teléfono inválido o vacío\");\n}\n\nreturn [\n  {\n    json: {\n      ...item,\n      valido: errores.length === 0,\n      errores_validacion: errores\n    }\n  }\n];"
+      },
+      "id": "0ceeea61-619e-4c8a-b907-51d3f26589f7",
+      "name": "Validar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "validacion",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3ce18a66-0b2e-4fe5-ba68-74a164f9893a",
+      "name": "¿Datos válidos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -64,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: 'El cliente tiene datos incompletos o inválidos.', errores: $json.errores_validacion }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "cf379e28-97a0-454a-a9b0-e429dad9c261",
+      "name": "Responder Error de Validación",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $node[\"Validar Datos\"].json.folder_name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "12A_em1fNl97xR8EnGFLt7VjAcikH5NgU",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "7ae1bf15-6a57-4252-ac3c-ca77558669e0",
+      "name": "Crear Carpeta Principal en Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        176,
+        144
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "5leTZW7hFybPUkbO",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "01 - Identificacion",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Crear Carpeta Principal en Drive\"].json.id }}"
+        },
+        "options": {}
+      },
+      "id": "97e979b0-6dfa-47b7-9716-7e7efd35ea86",
+      "name": "Crear Subcarpeta 01 - Identificacion",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        416,
+        144
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "5leTZW7hFybPUkbO",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "02 - Contratos",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Crear Carpeta Principal en Drive\"].json.id }}"
+        },
+        "options": {}
+      },
+      "id": "2afec038-30ba-4c17-b27c-cf8ca1bdcdb0",
+      "name": "Crear Subcarpeta 02 - Contratos",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        656,
+        144
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "5leTZW7hFybPUkbO",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "03 - Comprobantes",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Crear Carpeta Principal en Drive\"].json.id }}"
+        },
+        "options": {}
+      },
+      "id": "0245df6d-b6de-459f-9585-b13b2958deb9",
+      "name": "Crear Subcarpeta 03 - Comprobantes",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        896,
+        144
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "5leTZW7hFybPUkbO",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "04 - Seguimiento",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Crear Carpeta Principal en Drive\"].json.id }}"
+        },
+        "options": {}
+      },
+      "id": "94dba6d6-3edb-4931-bc13-df16972687b2",
+      "name": "Crear Subcarpeta 04 - Seguimiento",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1136,
+        144
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "5leTZW7hFybPUkbO",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "05 - Reportes",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Crear Carpeta Principal en Drive\"].json.id }}"
+        },
+        "options": {}
+      },
+      "id": "97d556a1-16c4-4bd0-928a-7ada93132dd6",
+      "name": "Crear Subcarpeta 05 - Reportes",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1376,
+        144
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "5leTZW7hFybPUkbO",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/Clientes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Cliente ID\": $node[\"Validar Datos\"].json.cliente_id, \"Nombre\": $node[\"Validar Datos\"].json.nombre, \"Email\": $node[\"Validar Datos\"].json.email, \"Teléfono\": $node[\"Validar Datos\"].json.telefono, \"Empresa\": $node[\"Validar Datos\"].json.empresa, \"Fuente\": $node[\"Validar Datos\"].json.fuente, \"Estado\": $node[\"Validar Datos\"].json.estado, \"Fecha de registro\": $node[\"Validar Datos\"].json.fecha_registro, \"Expediente URL\": \"https://drive.google.com/drive/folders/\" + $node[\"Crear Carpeta Principal en Drive\"].json.id, \"Carpeta Drive ID\": $node[\"Crear Carpeta Principal en Drive\"].json.id, \"JSON Original\": $node[\"Validar Datos\"].json.json_original } } ] }) }}",
+        "options": {}
+      },
+      "id": "0b8611f1-2894-4a62-bb67-29dccd6d06a2",
+      "name": "Registrar Cliente en Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1616,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'Expediente creado correctamente.', cliente_id: $node['Validar Datos'].json.cliente_id, nombre: $node['Validar Datos'].json.nombre, expediente_url: 'https://drive.google.com/drive/folders/' + $node['Crear Carpeta Principal en Drive'].json.id, carpeta_drive_id: $node['Crear Carpeta Principal en Drive'].json.id, subcarpetas: ['01 - Identificacion', '02 - Contratos', '03 - Comprobantes', '04 - Seguimiento', '05 - Reportes'] }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "8988cfbb-be9b-448a-9bcc-9b707643b969",
+      "name": "Responder Expediente Creado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1856,
+        144
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Recibir Cliente": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Datos": {
+      "main": [
+        [
+          {
+            "node": "Validar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Datos": {
+      "main": [
+        [
+          {
+            "node": "¿Datos válidos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Datos válidos?": {
+      "main": [
+        [
+          {
+            "node": "Crear Carpeta Principal en Drive",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Error de Validación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Carpeta Principal en Drive": {
+      "main": [
+        [
+          {
+            "node": "Crear Subcarpeta 01 - Identificacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Subcarpeta 01 - Identificacion": {
+      "main": [
+        [
+          {
+            "node": "Crear Subcarpeta 02 - Contratos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Subcarpeta 02 - Contratos": {
+      "main": [
+        [
+          {
+            "node": "Crear Subcarpeta 03 - Comprobantes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Subcarpeta 03 - Comprobantes": {
+      "main": [
+        [
+          {
+            "node": "Crear Subcarpeta 04 - Seguimiento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Subcarpeta 04 - Seguimiento": {
+      "main": [
+        [
+          {
+            "node": "Crear Subcarpeta 05 - Reportes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Subcarpeta 05 - Reportes": {
+      "main": [
+        [
+          {
+            "node": "Registrar Cliente en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Cliente en Airtable": {
+      "main": [
+        [
+          {
+            "node": "Responder Expediente Creado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8ba82729b151b311ad1d921c2f4fb4d186cfac2ca3ac061b895fc4cde3189075"
+  }
+}
