@@ -42,7 +42,60 @@ Is Data Valid?
            └── False → Create Lead in Airtable
                          ↓
                       Return Success Response
+```
 
+## Input Example
+
+```json
+{
+  "nombre": "Carlos Ramirez",
+  "email": "carlos.ramirez@example.com",
+  "telefono": "6671112233",
+  "fuente": "Formulario web",
+  "mensaje": "Quiero mas informacion.",
+  "responsable": "Ventas"
+}
+```
+
+## Successful Response
+
+```json
+{
+  "success": true,
+  "duplicated": false,
+  "message": "Lead recibido y registrado correctamente.",
+  "lead_id": "LEAD-178061022002",
+  "estado": "Nuevo"
+}
+```
+
+## Duplicate Response
+
+```json
+{
+  "success": true,
+  "duplicated": true,
+  "message": "El lead ya existe en Airtable. No se creó un nuevo registro.",
+  "email": "carlos.ramirez@example.com",
+  "telefono": "6671112233",
+  "airtable_record_id": "recXXXXXXXXXXXX",
+  "estado_actual": "Nuevo"
+}
+```
+
+## Validation Error Response
+
+```json
+{
+  "success": false,
+  "message": "El lead tiene datos incompletos o inválidos.",
+  "errores": [
+    "Nombre inválido o vacío",
+    "Email inválido o vacío",
+    "Teléfono inválido o vacío"
+  ]
+}
+```
 
 ## Screenshots
 
@@ -65,3 +118,23 @@ Is Data Valid?
 ### Validation error response
 
 ![Validation error response](screenshots/05-validation-error-response.png)
+
+## Business Value
+
+- Reduces manual data entry.
+- Prevents duplicated leads.
+- Validates required information before storing records.
+- Creates a consistent lead registration process.
+- Improves follow-up reliability.
+- Provides structured API responses.
+- Makes the process easier to audit and maintain.
+
+## Security Note
+
+The exported workflow must not include real API tokens, personal access tokens or private credentials.
+
+Before publishing the workflow, replace credentials with placeholders such as:
+
+```text
+Bearer AIRTABLE_TOKEN_HERE
+```
