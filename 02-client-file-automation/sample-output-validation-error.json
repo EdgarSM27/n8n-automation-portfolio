@@ -1,0 +1,9 @@
+{
+  "success": false,
+  "message": "El cliente tiene datos incompletos o inválidos.",
+  "errores": [
+    "Nombre inválido o vacío",
+    "Email inválido o vacío",
+    "Teléfono inválido o vacío"
+  ]
+}
