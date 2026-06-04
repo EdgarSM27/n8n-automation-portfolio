@@ -1,0 +1,388 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  duplicated: true,\n  message: \"El lead ya existe en Airtable. No se creó un nuevo registro.\",\n  email: $node[\"Validar Datos\"].json.email,\n  telefono: $node[\"Validar Datos\"].json.telefono,\n  airtable_record_id: $json.records[0].id,\n  estado_actual: $json.records[0].fields.Estado || \"Sin estado\"\n}) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -96,
+        80
+      ],
+      "id": "26d23afc-b50e-4c8b-935a-d98fe03f6a48",
+      "name": "Responder Lead Duplicado"
+    },
+    {
+      "parameters": {
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/Leads",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "maxRecords",
+              "value": "1"
+            },
+            {
+              "name": "filterByFormula",
+              "value": "={{ \"OR({Email} = '\" + $json.email + \"', {Teléfono} = '\" + $json.telefono + \"')\" }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -464,
+        336
+      ],
+      "id": "d01ffe54-4fd6-4157-b687-59ecf8dff7f1",
+      "name": "Buscar Duplicado en Airtable"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: 'El lead tiene datos incompletos o inválidos.', errores: $json.errores_validacion }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "aca2c675-3cb3-4f56-924e-bb7eeddd22de",
+      "name": "Responder Error de Validación",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -448,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  duplicated: false,\n  message: \"Lead recibido y registrado correctamente.\",\n  lead_id: $node[\"Validar Datos\"].json.lead_id,\n  estado: $node[\"Validar Datos\"].json.estado\n}) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "45c34d3c-d153-44da-961a-a8cf43f8cc4f",
+      "name": "Responder Lead Creado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/Leads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  records: [\n    {\n      fields: {\n        \"Nombre\": $node[\"Validar Datos\"].json.nombre,\n        \"Email\": $node[\"Validar Datos\"].json.email,\n        \"Teléfono\": $node[\"Validar Datos\"].json.telefono,\n        \"Fuente\": $node[\"Validar Datos\"].json.fuente,\n        \"Mensaje\": $node[\"Validar Datos\"].json.mensaje,\n        \"Estado\": $node[\"Validar Datos\"].json.estado,\n        \"Prioridad\": $node[\"Validar Datos\"].json.prioridad,\n        \"Responsable\": $node[\"Validar Datos\"].json.responsable,\n        \"Fecha de registro\": $now.toFormat(\"yyyy-MM-dd\"),\n        \"Última actualización\": $now.toFormat(\"yyyy-MM-dd\"),\n        \"Lead ID\": $node[\"Validar Datos\"].json.lead_id,\n        \"JSON Original\": $node[\"Validar Datos\"].json.json_original\n      }\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "id": "9f65af86-d4ed-4fdc-8a69-214eddaa5584",
+      "name": "Crear Lead en Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -128,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "validacion",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d1ac50f1-5b3c-4cb8-ab16-b7ed62462bb7",
+      "name": "¿Datos válidos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -672,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst errores = [];\n\nif (!item.nombre || item.nombre.trim().length < 2) {\n  errores.push('Nombre inválido o vacío');\n}\n\nif (!item.email || !item.email.includes('@')) {\n  errores.push('Email inválido o vacío');\n}\n\nif (!item.telefono || item.telefono.toString().length < 7) {\n  errores.push('Teléfono inválido o vacío');\n}\n\nreturn [\n  {\n    json: {\n      ...item,\n      valido: errores.length === 0,\n      errores_validacion: errores,\n      prioridad: 'Media',\n      estado: errores.length === 0 ? 'Nuevo' : 'Revisar'\n    }\n  }\n];"
+      },
+      "id": "77cfe1a3-2f69-449f-a51a-8b34463547d6",
+      "name": "Validar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "nombre",
+              "name": "nombre",
+              "value": "={{$json.body?.nombre || $json.nombre || ''}}",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "value": "={{$json.body?.email ? $json.body.email.toLowerCase().trim() : ($json.email ? $json.email.toLowerCase().trim() : '')}}",
+              "type": "string"
+            },
+            {
+              "id": "telefono",
+              "name": "telefono",
+              "value": "={{$json.body?.telefono || $json.telefono || ''}}",
+              "type": "string"
+            },
+            {
+              "id": "fuente",
+              "name": "fuente",
+              "value": "={{$json.body?.fuente || $json.fuente || 'Sin fuente'}}",
+              "type": "string"
+            },
+            {
+              "id": "mensaje",
+              "name": "mensaje",
+              "value": "={{$json.body?.mensaje || $json.mensaje || ''}}",
+              "type": "string"
+            },
+            {
+              "id": "responsable",
+              "name": "responsable",
+              "value": "={{$json.body?.responsable || $json.responsable || 'Sin asignar'}}",
+              "type": "string"
+            },
+            {
+              "id": "fecha_registro",
+              "name": "fecha_registro",
+              "value": "={{$now.toISO()}}",
+              "type": "string"
+            },
+            {
+              "id": "lead_id",
+              "name": "lead_id",
+              "value": "={{'LEAD-' + Date.now()}}",
+              "type": "string"
+            },
+            {
+              "id": "json_original",
+              "name": "json_original",
+              "value": "={{JSON.stringify($json.body || $json)}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "887db205-342f-4849-bbe8-0d0a5ee86de9",
+      "name": "Normalizar Datos",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -992,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "00af403c-03b3-40dc-8406-39b6005c29ab",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4220da3c-fda7-4cd3-88f8-76f091cf8405",
+      "name": "Webhook - Recibir Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1168,
+        352
+      ],
+      "webhookId": "00af403c-03b3-40dc-8406-39b6005c29ab"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ad935c74-d959-430f-9bf7-f54f71373a9f",
+              "leftValue": "={{ Array.isArray($json.records) && $json.records.length > 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -320,
+        336
+      ],
+      "id": "133e1b11-fc0b-4fe0-bc20-93e52058a1b3",
+      "name": "¿Duplicado?"
+    }
+  ],
+  "connections": {
+    "Buscar Duplicado en Airtable": {
+      "main": [
+        [
+          {
+            "node": "¿Duplicado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Lead en Airtable": {
+      "main": [
+        [
+          {
+            "node": "Responder Lead Creado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Datos válidos?": {
+      "main": [
+        [
+          {
+            "node": "Buscar Duplicado en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Error de Validación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Datos": {
+      "main": [
+        [
+          {
+            "node": "¿Datos válidos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Datos": {
+      "main": [
+        [
+          {
+            "node": "Validar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Recibir Lead": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Duplicado?": {
+      "main": [
+        [
+          {
+            "node": "Responder Lead Duplicado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear Lead en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "8ba82729b151b311ad1d921c2f4fb4d186cfac2ca3ac061b895fc4cde3189075"
+  }
+}
