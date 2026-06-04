@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "message": "Expediente creado correctamente.",
+  "cliente_id": "CLIENT-178061022002",
+  "nombre": "Carlos Ramirez",
+  "expediente_url": "https://drive.google.com/drive/folders/DRIVE_FOLDER_ID",
+  "carpeta_drive_id": "DRIVE_FOLDER_ID",
+  "subcarpetas": [
+    "01 - Identificacion",
+    "02 - Contratos",
+    "03 - Comprobantes",
+    "04 - Seguimiento",
+    "05 - Reportes"
+  ]
+}
