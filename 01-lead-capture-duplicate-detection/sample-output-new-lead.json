@@ -1,0 +1,7 @@
+{
+  "success": true,
+  "duplicated": false,
+  "message": "Lead recibido y registrado correctamente.",
+  "lead_id": "LEAD-1234567890",
+  "estado": "Nuevo"
+}
