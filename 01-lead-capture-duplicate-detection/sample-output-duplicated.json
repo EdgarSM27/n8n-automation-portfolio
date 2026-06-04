@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "duplicated": true,
+  "message": "El lead ya existe en Airtable. No se creó un nuevo registro.",
+  "email": "carlos.ramirez@example.com",
+  "telefono": "6671112233",
+  "airtable_record_id": "recXXXXXXXXXXXX",
+  "estado_actual": "Nuevo"
+}
