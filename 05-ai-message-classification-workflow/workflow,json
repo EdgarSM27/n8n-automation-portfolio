@@ -1,1 +1,290 @@
 
+{
+  "name": "05 - AI Message Classification Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-message-classification",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "11111111-cccc-4111-8111-111111111111",
+      "name": "Webhook - Recibir Mensaje",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        300
+      ],
+      "webhookId": "ai-message-classification"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst data =\n  input.body && Object.keys(input.body).length > 0\n    ? input.body\n    : input.query && Object.keys(input.query).length > 0\n      ? input.query\n      : input;\n\nconst nombre = data.nombre || data.name || \"\";\nconst email = data.email || data.correo || \"\";\nconst telefono = data.telefono || data.phone || data.celular || \"\";\nconst mensaje = data.mensaje || data.message || \"\";\nconst fuente = data.fuente || data.source || \"Sin fuente\";\n\nreturn [\n  {\n    json: {\n      classification_id: \"CLS-\" + Date.now(),\n      nombre: String(nombre).trim(),\n      email: String(email).toLowerCase().trim(),\n      telefono: String(telefono).trim(),\n      mensaje: String(mensaje).trim(),\n      fuente: String(fuente).trim(),\n      fecha_registro: new Date().toISOString().slice(0, 10),\n      json_original: JSON.stringify(data)\n    }\n  }\n];"
+      },
+      "id": "22222222-cccc-4222-8222-222222222222",
+      "name": "Normalizar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst errores = [];\n\nif (!item.mensaje || item.mensaje.trim().length < 5) {\n  errores.push(\"Mensaje inválido o vacío\");\n}\n\nif (!item.nombre || item.nombre.trim().length < 2) {\n  errores.push(\"Nombre inválido o vacío\");\n}\n\nreturn [\n  {\n    json: {\n      ...item,\n      valido: errores.length === 0,\n      errores_validacion: errores\n    }\n  }\n];"
+      },
+      "id": "33333333-cccc-4333-8333-333333333333",
+      "name": "Validar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "validacion",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "44444444-cccc-4444-8444-444444444444",
+      "name": "¿Datos válidos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: 'El mensaje tiene datos incompletos o inválidos.', errores: $json.errores_validacion }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "55555555-cccc-4555-8555-555555555555",
+      "name": "Responder Error de Validación",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/responses",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer OPENAI_API_KEY_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'gpt-4.1-mini', input: [ { role: 'system', content: 'You are an AI assistant specialized in classifying sales prospect messages. Return only valid JSON using the requested schema. Do not include markdown.' }, { role: 'user', content: `Classify this prospect message.\\n\\nName: ${$node['Validar Datos'].json.nombre}\\nEmail: ${$node['Validar Datos'].json.email}\\nPhone: ${$node['Validar Datos'].json.telefono}\\nSource: ${$node['Validar Datos'].json.fuente}\\nMessage: ${$node['Validar Datos'].json.mensaje}\\n\\nReturn a JSON object with: categoria, prioridad, sentimiento, resumen, siguiente_accion.` } ], text: { format: { type: 'json_schema', name: 'lead_message_classification', schema: { type: 'object', additionalProperties: false, properties: { categoria: { type: 'string', enum: ['Solicita precio', 'Solicita informacion', 'Solicita llamada', 'Seguimiento pendiente', 'No calificado', 'Soporte o queja', 'Otro'] }, prioridad: { type: 'string', enum: ['Alta', 'Media', 'Baja'] }, sentimiento: { type: 'string', enum: ['Interesado', 'Neutral', 'Negativo', 'Urgente'] }, resumen: { type: 'string' }, siguiente_accion: { type: 'string' } }, required: ['categoria', 'prioridad', 'sentimiento', 'resumen', 'siguiente_accion'] }, strict: true } } }) }}",
+        "options": {}
+      },
+      "id": "66666666-cccc-4666-8666-666666666666",
+      "name": "OpenAI - Clasificar Mensaje",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -320,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ai = $node['OpenAI - Clasificar Mensaje'].json;\nlet text = '';\n\nif (ai.output_text) {\n  text = ai.output_text;\n} else if (ai.output?.[0]?.content?.[0]?.text) {\n  text = ai.output[0].content[0].text;\n} else if (ai.choices?.[0]?.message?.content) {\n  text = ai.choices[0].message.content;\n}\n\nlet parsed;\ntry {\n  parsed = JSON.parse(text);\n} catch (error) {\n  parsed = {\n    categoria: 'Otro',\n    prioridad: 'Media',\n    sentimiento: 'Neutral',\n    resumen: 'No se pudo parsear correctamente la respuesta de la IA.',\n    siguiente_accion: 'Revisar manualmente la conversación.'\n  };\n}\n\nreturn [\n  {\n    json: {\n      ...$node['Validar Datos'].json,\n      categoria: parsed.categoria,\n      prioridad: parsed.prioridad,\n      sentimiento: parsed.sentimiento,\n      resumen: parsed.resumen,\n      siguiente_accion: parsed.siguiente_accion,\n      ai_raw_response: JSON.stringify(ai)\n    }\n  }\n];"
+      },
+      "id": "77777777-cccc-4777-8777-777777777777",
+      "name": "Parsear Respuesta IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/AI%20Classifications",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { 'Classification ID': $node['Parsear Respuesta IA'].json.classification_id, 'Nombre': $node['Parsear Respuesta IA'].json.nombre, 'Email': $node['Parsear Respuesta IA'].json.email, 'Teléfono': $node['Parsear Respuesta IA'].json.telefono, 'Mensaje': $node['Parsear Respuesta IA'].json.mensaje, 'Categoría': $node['Parsear Respuesta IA'].json.categoria, 'Prioridad': $node['Parsear Respuesta IA'].json.prioridad, 'Sentimiento': $node['Parsear Respuesta IA'].json.sentimiento, 'Resumen': $node['Parsear Respuesta IA'].json.resumen, 'Siguiente Acción': $node['Parsear Respuesta IA'].json.siguiente_accion, 'Fecha de registro': $node['Parsear Respuesta IA'].json.fecha_registro, 'JSON Original': $node['Parsear Respuesta IA'].json.json_original, 'AI Raw Response': $node['Parsear Respuesta IA'].json.ai_raw_response } } ] }) }}",
+        "options": {}
+      },
+      "id": "88888888-cccc-4888-8888-888888888888",
+      "name": "Registrar Clasificación en Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: 'Mensaje clasificado correctamente.', classification_id: $node['Parsear Respuesta IA'].json.classification_id, nombre: $node['Parsear Respuesta IA'].json.nombre, categoria: $node['Parsear Respuesta IA'].json.categoria, prioridad: $node['Parsear Respuesta IA'].json.prioridad, sentimiento: $node['Parsear Respuesta IA'].json.sentimiento, resumen: $node['Parsear Respuesta IA'].json.resumen, siguiente_accion: $node['Parsear Respuesta IA'].json.siguiente_accion }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "99999999-cccc-4999-8999-999999999999",
+      "name": "Responder Clasificación",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        180
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Recibir Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Datos": {
+      "main": [
+        [
+          {
+            "node": "Validar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Datos": {
+      "main": [
+        [
+          {
+            "node": "¿Datos válidos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Datos válidos?": {
+      "main": [
+        [
+          {
+            "node": "OpenAI - Clasificar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Error de Validación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Clasificar Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Parsear Respuesta IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear Respuesta IA": {
+      "main": [
+        [
+          {
+            "node": "Registrar Clasificación en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Clasificación en Airtable": {
+      "main": [
+        [
+          {
+            "node": "Responder Clasificación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "versionId": "00000000-0000-0000-0000-000000000000",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
