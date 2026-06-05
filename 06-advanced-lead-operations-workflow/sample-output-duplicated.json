@@ -1,0 +1,11 @@
+{
+  "success": true,
+  "duplicated": true,
+  "message": "El lead ya existe en Airtable. No se creó un nuevo registro.",
+  "lead_id": "ADV-LEAD-178069119145",
+  "airtable_record_id": "recXXXXXXXXXXXX",
+  "nombre": "Carlos Ramirez",
+  "email": "carlos.ramirez@example.com",
+  "telefono": "6671112233",
+  "log_created": true
+}
