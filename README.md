@@ -1,3 +1,5 @@
+[English](./README.md) | [Español](./README.es.md)
+
 # n8n Automation Portfolio
 
 Automation portfolio focused on business process automation using n8n, Airtable, Google Drive, OpenAI API, REST APIs, JSON, webhooks, validation logic and workflow documentation.
