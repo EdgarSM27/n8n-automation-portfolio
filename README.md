@@ -111,7 +111,6 @@ n8n-automation-portfolio/
 │   ├── sample-output-duplicated.json
 │   ├── sample-output-validation-error.json
 │   └── screenshots/
-│
 ├── 02-client-file-automation/
 │   ├── README.md
 │   ├── workflow.json
@@ -126,7 +125,7 @@ n8n-automation-portfolio/
 │   ├── sample-output-report-summary.json
 │   ├── sample-report.txt
 │   └── screenshots/
-│├── 04-rest-api-integration-workflow/
+├── 04-rest-api-integration-workflow/
 │   ├── README.md
 │   ├── workflow.json
 │   ├── sample-output-summary.json
