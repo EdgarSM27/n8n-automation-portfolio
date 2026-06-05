@@ -1,3 +1,5 @@
+[English](./README.md) | [Español](./README.es.md)
+
 # Portafolio de Automatización con n8n
 
 Portafolio enfocado en automatización de procesos de negocio utilizando n8n, Airtable, Google Drive, OpenAI API, APIs REST, JSON, webhooks, validación de datos y documentación técnica de workflows.
