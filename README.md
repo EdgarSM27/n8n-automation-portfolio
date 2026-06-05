@@ -192,8 +192,6 @@ REPORTS_FOLDER_ID_HERE
 GOOGLE_DRIVE_CREDENTIAL_PLACEHOLDER
 ```
 
-Never commit real credentials to a public repository.
-
 ## Purpose
 
 The purpose of this portfolio is to demonstrate practical automation skills using n8n and related tools. Each project includes the exported workflow, example inputs, example outputs, screenshots and documentation explaining the business problem, solution and technical implementation.
