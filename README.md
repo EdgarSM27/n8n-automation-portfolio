@@ -55,3 +55,22 @@ n8n-automation-portfolio/
     ├── security.md
     ├── error-handling.md
     └── api-integrations.md
+
+
+### [02 - Client File Automation with Google Drive](./02-client-file-automation)
+
+This workflow receives client information through a webhook, validates the data, creates a structured client file in Google Drive, registers the client in Airtable and returns the generated folder URL.
+
+Main tools used:
+
+- n8n
+- Google Drive
+- Airtable API
+- Webhook
+- HTTP Request nodes
+- JavaScript Code node
+- JSON
+- Google OAuth2
+
+Status: Completed
+
