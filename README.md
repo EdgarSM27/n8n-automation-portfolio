@@ -25,6 +25,10 @@ This repository contains practical automation projects designed to solve real bu
 - AI-powered message classification
 - OpenAI API integration
 - Prompt engineering for structured JSON output
+- Advanced lead operations automation
+- CRM-style workflow architecture
+- Follow-up task creation
+- Automation logging and audit trail
 
 ## Projects
 
@@ -122,6 +126,29 @@ Main tools used:
 
 Status: Completed
 
+---
+
+### [06 - Advanced Lead Operations Workflow](./06-advanced-lead-operations-workflow)
+
+This advanced workflow receives a sales lead through a webhook, validates the data, detects duplicates in Airtable, classifies the message with OpenAI, creates a Google Drive folder, registers the lead, creates a follow-up task, stores automation logs and returns a structured JSON response.
+
+Main tools used:
+
+- n8n
+- OpenAI API
+- Airtable API
+- Google Drive
+- Webhook
+- HTTP Request nodes
+- JavaScript Code node
+- JSON
+- Google OAuth2
+- Duplicate detection
+- Follow-up task creation
+- Automation logs
+
+Status: Completed
+
 ## Repository Structure
 
 ```text
@@ -173,6 +200,25 @@ n8n-automation-portfolio/
 │       ├── 03-airtable-classification-record.png
 │       ├── 04-success-response.png
 │       └── 05-validation-error-response.png
+│
+├── 06-advanced-lead-operations-workflow/
+│   ├── README.md
+│   ├── README.es.md
+│   ├── workflow.json
+│   ├── sample-input.json
+│   ├── sample-input-invalid.json
+│   ├── sample-output-success.json
+│   ├── sample-output-duplicated.json
+│   ├── sample-output-validation-error.json
+│   └── screenshots/
+│       ├── 01-n8n-workflow.png
+│       ├── 02-success-response.png
+│       ├── 03-duplicate-response.png
+│       ├── 04-validation-error-response.png
+│       ├── 05-advanced-leads-record.png
+│       ├── 06-follow-up-task-record.png
+│       ├── 07-automation-log-record.png
+│       └── 08-google-drive-folder.png
 │
 └── docs/
     ├── security.md
