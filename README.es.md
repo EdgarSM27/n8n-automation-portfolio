@@ -4,7 +4,7 @@
 
 Portafolio enfocado en automatización de procesos de negocio utilizando n8n, Airtable, Google Drive, OpenAI API, APIs REST, JSON, webhooks, validación de datos y documentación técnica de workflows.
 
-Este repositorio contiene proyectos prácticos de automatización diseñados para resolver problemas reales de negocio, como captación de leads, detección de duplicados, seguimiento de clientes, organización de expedientes, reportes automáticos, integración de APIs y clasificación de mensajes con IA.
+Este repositorio contiene proyectos prácticos de automatización diseñados para resolver problemas reales de negocio, como captación de leads, detección de duplicados, seguimiento de clientes, organización de expedientes, reportes automáticos, integración con APIs, clasificación de mensajes con IA y operaciones avanzadas tipo CRM.
 
 ## Habilidades demostradas
 
@@ -25,6 +25,10 @@ Este repositorio contiene proyectos prácticos de automatización diseñados par
 - Clasificación de mensajes con IA
 - Integración con OpenAI API
 - Prompt engineering para salidas JSON estructuradas
+- Automatización avanzada de operaciones de leads
+- Arquitectura de workflows tipo CRM
+- Creación de tareas de seguimiento
+- Registro de logs y trazabilidad de automatizaciones
 
 ## Proyectos
 
@@ -122,6 +126,29 @@ Herramientas principales:
 
 Estado: Completado
 
+---
+
+### [06 - Workflow Avanzado de Operaciones de Leads](./06-advanced-lead-operations-workflow)
+
+Este workflow avanzado recibe un lead de ventas mediante un webhook, valida los datos, detecta duplicados en Airtable, clasifica el mensaje con OpenAI, crea una carpeta en Google Drive, registra el lead, crea una tarea de seguimiento, almacena logs de automatización y devuelve una respuesta JSON estructurada.
+
+Herramientas principales:
+
+- n8n
+- OpenAI API
+- Airtable API
+- Google Drive
+- Webhook
+- Nodos HTTP Request
+- Nodo JavaScript Code
+- JSON
+- Google OAuth2
+- Detección de duplicados
+- Creación de tareas de seguimiento
+- Registro de logs de automatización
+
+Estado: Completado
+
 ## Estructura del repositorio
 
 ```text
@@ -175,6 +202,25 @@ n8n-automation-portfolio/
 │   ├── sample-output-validation-error.json
 │   └── screenshots/
 │
+├── 06-advanced-lead-operations-workflow/
+│   ├── README.md
+│   ├── README.es.md
+│   ├── workflow.json
+│   ├── sample-input.json
+│   ├── sample-input-invalid.json
+│   ├── sample-output-success.json
+│   ├── sample-output-duplicated.json
+│   ├── sample-output-validation-error.json
+│   └── screenshots/
+│       ├── 01-n8n-workflow.png
+│       ├── 02-success-response.png
+│       ├── 03-duplicate-response.png
+│       ├── 04-validation-error-response.png
+│       ├── 05-advanced-leads-record.png
+│       ├── 06-follow-up-task-record.png
+│       ├── 07-automation-log-record.png
+│       └── 08-google-drive-folder.png
+│
 └── docs/
     ├── security.md
     ├── error-handling.md
@@ -192,11 +238,13 @@ Bearer AIRTABLE_TOKEN_HERE
 Bearer OPENAI_API_KEY_HERE
 PARENT_FOLDER_ID_HERE
 REPORTS_FOLDER_ID_HERE
+ADVANCED_LEADS_FOLDER_ID_HERE
 GOOGLE_DRIVE_CREDENTIAL_PLACEHOLDER
 ```
 
-Nunca publiques credenciales reales en un repositorio público.
 
 ## Propósito
 
 El propósito de este portafolio es demostrar habilidades prácticas de automatización utilizando n8n y herramientas relacionadas. Cada proyecto incluye el workflow exportado, entradas de ejemplo, salidas de ejemplo, capturas de pantalla y documentación que explica el problema de negocio, la solución y la implementación técnica.
+
+Este portafolio está orientado a demostrar experiencia práctica en automatización de procesos, integración de sistemas, documentación técnica y diseño de flujos medibles para áreas como ventas, administración, seguimiento comercial y operaciones.
