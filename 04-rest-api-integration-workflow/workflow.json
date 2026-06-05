@@ -1,1 +1,224 @@
 
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "3fbebbd8-2d1e-42a2-a3ad-dfe4bbcdcf01",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const requestId = 'REQ-' + Date.now();\n\nreturn [\n  {\n    json: {\n      request_id: requestId,\n      api_base_url: 'https://jsonplaceholder.typicode.com',\n      auth_token: 'DEMO_API_TOKEN',\n      get_endpoint: '/posts/1',\n      post_endpoint: '/posts',\n      put_endpoint: '/posts/1',\n      post_payload: {\n        title: 'New automation record',\n        body: 'This record was created from an n8n REST API workflow.',\n        userId: 1\n      },\n      put_payload: {\n        id: 1,\n        title: 'Updated automation record',\n        body: 'This record was updated from an n8n REST API workflow using PUT.',\n        userId: 1\n      }\n    }\n  }\n];"
+      },
+      "id": "747603da-8b2c-42af-b7ee-062b0be6d1f1",
+      "name": "Preparar Datos de Prueba",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $node[\"Preparar Datos de Prueba\"].json.api_base_url + $node[\"Preparar Datos de Prueba\"].json.get_endpoint }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $node[\"Preparar Datos de Prueba\"].json.auth_token }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a2954ea8-f2e0-4ea7-8445-5285cf3d2747",
+      "name": "GET - Consultar Recurso",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $node[\"Preparar Datos de Prueba\"].json.api_base_url + $node[\"Preparar Datos de Prueba\"].json.post_endpoint }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $node[\"Preparar Datos de Prueba\"].json.auth_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($node[\"Preparar Datos de Prueba\"].json.post_payload) }}",
+        "options": {}
+      },
+      "id": "6f252407-96d9-4bac-b2c4-2546b834792c",
+      "name": "POST - Crear Recurso",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $node[\"Preparar Datos de Prueba\"].json.api_base_url + $node[\"Preparar Datos de Prueba\"].json.put_endpoint }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $node[\"Preparar Datos de Prueba\"].json.auth_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($node[\"Preparar Datos de Prueba\"].json.put_payload) }}",
+        "options": {}
+      },
+      "id": "8c6f4889-97b7-40ba-b61f-c989d289a5a2",
+      "name": "PUT - Actualizar Recurso",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const setup = $node['Preparar Datos de Prueba'].json;\nconst getResponse = $node['GET - Consultar Recurso'].json;\nconst postResponse = $node['POST - Crear Recurso'].json;\nconst putResponse = $node['PUT - Actualizar Recurso'].json;\n\nconst validations = [];\n\nvalidations.push({\n  method: 'GET',\n  endpoint: setup.get_endpoint,\n  success: !!getResponse.id,\n  received_id: getResponse.id || null\n});\n\nvalidations.push({\n  method: 'POST',\n  endpoint: setup.post_endpoint,\n  success: !!postResponse.id,\n  created_id: postResponse.id || null\n});\n\nvalidations.push({\n  method: 'PUT',\n  endpoint: setup.put_endpoint,\n  success: putResponse.title === setup.put_payload.title,\n  updated_id: putResponse.id || null\n});\n\nconst allSuccessful = validations.every(item => item.success === true);\n\nreturn [\n  {\n    json: {\n      success: allSuccessful,\n      request_id: setup.request_id,\n      api_base_url: setup.api_base_url,\n      methods_used: ['GET', 'POST', 'PUT'],\n      authentication_type: 'Bearer token header',\n      content_type: 'application/json',\n      validations,\n      get_response_sample: getResponse,\n      post_response_sample: postResponse,\n      put_response_sample: putResponse\n    }\n  }\n];"
+      },
+      "id": "da2dae06-f978-42ab-b5fc-8fca1cd00738",
+      "name": "Validar Respuestas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nreturn [\n  {\n    json: {\n      success: item.success,\n      message: item.success\n        ? 'REST API integration workflow completed successfully.'\n        : 'REST API integration workflow completed with validation issues.',\n      request_id: item.request_id,\n      api_base_url: item.api_base_url,\n      methods_used: item.methods_used,\n      authentication_type: item.authentication_type,\n      content_type: item.content_type,\n      get_request: item.validations.find(v => v.method === 'GET')?.success ? 'completed' : 'failed',\n      post_request: item.validations.find(v => v.method === 'POST')?.success ? 'completed' : 'failed',\n      put_request: item.validations.find(v => v.method === 'PUT')?.success ? 'completed' : 'failed',\n      validations: item.validations\n    }\n  }\n];"
+      },
+      "id": "79ac099b-11b2-4f34-96f8-59152ffe618e",
+      "name": "Resumen Final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        32
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Preparar Datos de Prueba",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Datos de Prueba": {
+      "main": [
+        [
+          {
+            "node": "GET - Consultar Recurso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET - Consultar Recurso": {
+      "main": [
+        [
+          {
+            "node": "POST - Crear Recurso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST - Crear Recurso": {
+      "main": [
+        [
+          {
+            "node": "PUT - Actualizar Recurso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PUT - Actualizar Recurso": {
+      "main": [
+        [
+          {
+            "node": "Validar Respuestas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Respuestas": {
+      "main": [
+        [
+          {
+            "node": "Resumen Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "8ba82729b151b311ad1d921c2f4fb4d186cfac2ca3ac061b895fc4cde3189075"
+  }
+}
