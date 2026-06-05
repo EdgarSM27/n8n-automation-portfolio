@@ -1,0 +1,618 @@
+{
+  "name": "06 - Advanced Lead Operations Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "advanced-lead-operations",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "11111111-dddd-4111-8111-111111111111",
+      "name": "Webhook - Recibir Lead Avanzado",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1880,
+        320
+      ],
+      "webhookId": "advanced-lead-operations"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst data =\n  input.body && Object.keys(input.body).length > 0\n    ? input.body\n    : input.query && Object.keys(input.query).length > 0\n      ? input.query\n      : input;\n\nconst nombre = data.nombre || data.name || \"\";\nconst email = data.email || data.correo || \"\";\nconst telefono = data.telefono || data.phone || data.celular || \"\";\nconst empresa = data.empresa || data.company || \"Sin empresa\";\nconst fuente = data.fuente || data.source || \"Sin fuente\";\nconst mensaje = data.mensaje || data.message || \"\";\n\nconst leadId = \"ADV-LEAD-\" + Date.now();\nconst nombreLimpio = String(nombre).trim();\n\nreturn [\n  {\n    json: {\n      lead_id: leadId,\n      nombre: nombreLimpio,\n      email: String(email).toLowerCase().trim(),\n      telefono: String(telefono).trim(),\n      empresa: String(empresa).trim(),\n      fuente: String(fuente).trim(),\n      mensaje: String(mensaje).trim(),\n      estado: \"Procesado\",\n      fecha_registro: new Date().toISOString().slice(0, 10),\n      folder_name: `ADV-${leadId} - ${nombreLimpio}`,\n      json_original: JSON.stringify(data)\n    }\n  }\n];"
+      },
+      "id": "22222222-dddd-4222-8222-222222222222",
+      "name": "Normalizar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1640,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst errores = [];\n\nif (!item.nombre || item.nombre.trim().length < 2) {\n  errores.push(\"Nombre inválido o vacío\");\n}\n\nif (!item.email || !item.email.includes(\"@\")) {\n  errores.push(\"Email inválido o vacío\");\n}\n\nif (!item.telefono || item.telefono.toString().length < 7) {\n  errores.push(\"Teléfono inválido o vacío\");\n}\n\nif (!item.mensaje || item.mensaje.trim().length < 5) {\n  errores.push(\"Mensaje inválido o vacío\");\n}\n\nreturn [\n  {\n    json: {\n      ...item,\n      valido: errores.length === 0,\n      errores_validacion: errores\n    }\n  }\n];"
+      },
+      "id": "33333333-dddd-4333-8333-333333333333",
+      "name": "Validar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1400,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "validacion",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "44444444-dddd-4444-8444-444444444444",
+      "name": "¿Datos válidos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1160,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/Automation%20Logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Log ID\": \"LOG-\" + Date.now(), \"Workflow\": \"06 - Advanced Lead Operations Workflow\", \"Evento\": \"Validation Error\", \"Estado\": \"Error\", \"Mensaje\": \"El lead tiene datos incompletos o inválidos.\", \"Lead ID\": $node[\"Validar Datos\"].json.lead_id || \"Sin Lead ID\", \"Fecha\": new Date().toISOString().slice(0, 10), \"JSON\": JSON.stringify({ errores: $node[\"Validar Datos\"].json.errores_validacion, data: $node[\"Validar Datos\"].json }) } } ] }) }}",
+        "options": {}
+      },
+      "id": "55555555-dddd-4555-8555-555555555555",
+      "name": "Crear Log Error Validación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -920,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: \"El lead tiene datos incompletos o inválidos.\", errores: $node[\"Validar Datos\"].json.errores_validacion, log_created: true }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "66666666-dddd-4666-8666-666666666666",
+      "name": "Responder Error de Validación",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -680,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/Advanced%20Leads",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "maxRecords",
+              "value": "1"
+            },
+            {
+              "name": "filterByFormula",
+              "value": "={{ \"OR({Email} = '\" + $node[\"Validar Datos\"].json.email + \"', {Teléfono} = '\" + $node[\"Validar Datos\"].json.telefono + \"')\" }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "77777777-dddd-4777-8777-777777777777",
+      "name": "Buscar Duplicado en Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -920,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "duplicado",
+              "leftValue": "={{ Array.isArray($json.records) && $json.records.length > 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "88888888-dddd-4888-8888-888888888888",
+      "name": "¿Existe duplicado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -680,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/Automation%20Logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Log ID\": \"LOG-\" + Date.now(), \"Workflow\": \"06 - Advanced Lead Operations Workflow\", \"Evento\": \"Duplicate Lead\", \"Estado\": \"Duplicado\", \"Mensaje\": \"El lead ya existe en Airtable. No se creó un nuevo registro.\", \"Lead ID\": $node[\"Buscar Duplicado en Airtable\"].json.records[0].fields[\"Lead ID\"] || $node[\"Validar Datos\"].json.lead_id, \"Fecha\": new Date().toISOString().slice(0, 10), \"JSON\": JSON.stringify({ input: $node[\"Validar Datos\"].json, duplicate_record: $node[\"Buscar Duplicado en Airtable\"].json.records[0] }) } } ] }) }}",
+        "options": {}
+      },
+      "id": "99999999-dddd-4999-8999-999999999999",
+      "name": "Crear Log Lead Duplicado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -440,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, duplicated: true, message: \"El lead ya existe en Airtable. No se creó un nuevo registro.\", lead_id: $node[\"Buscar Duplicado en Airtable\"].json.records[0].fields[\"Lead ID\"] || null, airtable_record_id: $node[\"Buscar Duplicado en Airtable\"].json.records[0].id, nombre: $node[\"Validar Datos\"].json.nombre, email: $node[\"Validar Datos\"].json.email, telefono: $node[\"Validar Datos\"].json.telefono, log_created: true }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "aaaaaaaa-dddd-4aaa-8aaa-aaaaaaaaaaaa",
+      "name": "Responder Lead Duplicado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -200,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/responses",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer OPENAI_API_KEY_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"gpt-4.1-mini\", input: [ { role: \"system\", content: \"You are an AI assistant specialized in classifying sales leads for a CRM workflow. Return only valid JSON using the requested schema. Do not include markdown.\" }, { role: \"user\", content: `Classify this sales lead message.\\n\\nName: ${$node[\"Validar Datos\"].json.nombre}\\nEmail: ${$node[\"Validar Datos\"].json.email}\\nPhone: ${$node[\"Validar Datos\"].json.telefono}\\nCompany: ${$node[\"Validar Datos\"].json.empresa}\\nSource: ${$node[\"Validar Datos\"].json.fuente}\\nMessage: ${$node[\"Validar Datos\"].json.mensaje}\\n\\nReturn a JSON object with: categoria, prioridad, sentimiento, resumen, siguiente_accion.` } ], text: { format: { type: \"json_schema\", name: \"advanced_lead_classification\", schema: { type: \"object\", additionalProperties: false, properties: { categoria: { type: \"string\", enum: [\"Solicita precio\", \"Solicita informacion\", \"Solicita llamada\", \"Seguimiento pendiente\", \"No calificado\", \"Soporte o queja\", \"Otro\"] }, prioridad: { type: \"string\", enum: [\"Alta\", \"Media\", \"Baja\"] }, sentimiento: { type: \"string\", enum: [\"Interesado\", \"Neutral\", \"Negativo\", \"Urgente\"] }, resumen: { type: \"string\" }, siguiente_accion: { type: \"string\" } }, required: [\"categoria\", \"prioridad\", \"sentimiento\", \"resumen\", \"siguiente_accion\"] }, strict: true } } }) }}",
+        "options": {}
+      },
+      "id": "bbbbbbbb-dddd-4bbb-8bbb-bbbbbbbbbbbb",
+      "name": "OpenAI - Clasificar Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -440,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ai = $node['OpenAI - Clasificar Lead'].json;\nlet text = '';\n\nif (ai.output_text) {\n  text = ai.output_text;\n} else if (ai.output?.[0]?.content?.[0]?.text) {\n  text = ai.output[0].content[0].text;\n} else if (ai.choices?.[0]?.message?.content) {\n  text = ai.choices[0].message.content;\n}\n\nlet parsed;\ntry {\n  parsed = JSON.parse(text);\n} catch (error) {\n  parsed = {\n    categoria: 'Otro',\n    prioridad: 'Media',\n    sentimiento: 'Neutral',\n    resumen: 'No se pudo parsear correctamente la respuesta de la IA.',\n    siguiente_accion: 'Revisar manualmente el lead.'\n  };\n}\n\nconst prioridad = parsed.prioridad || 'Media';\nlet tipoSeguimiento = 'Seguimiento estándar';\nlet diasContacto = 2;\n\nif (prioridad === 'Alta') {\n  tipoSeguimiento = 'Seguimiento urgente';\n  diasContacto = 0;\n} else if (prioridad === 'Media') {\n  tipoSeguimiento = 'Seguimiento estándar';\n  diasContacto = 2;\n} else {\n  tipoSeguimiento = 'Seguimiento de baja prioridad';\n  diasContacto = 5;\n}\n\nconst fecha = new Date();\nfecha.setDate(fecha.getDate() + diasContacto);\nconst fechaSugerida = fecha.toISOString().slice(0, 10);\n\nreturn [\n  {\n    json: {\n      ...$node['Validar Datos'].json,\n      categoria: parsed.categoria,\n      prioridad,\n      sentimiento: parsed.sentimiento,\n      resumen: parsed.resumen,\n      siguiente_accion: parsed.siguiente_accion,\n      tipo_seguimiento: tipoSeguimiento,\n      fecha_sugerida_contacto: fechaSugerida,\n      task_id: 'TASK-' + Date.now(),\n      ai_raw_response: JSON.stringify(ai)\n    }\n  }\n];"
+      },
+      "id": "cccccccc-dddd-4ccc-8ccc-cccccccccccc",
+      "name": "Parsear IA y Preparar Operación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "create",
+        "name": "={{ $node[\"Parsear IA y Preparar Operación\"].json.folder_name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ADVANCED_LEADS_FOLDER_ID_HERE"
+        },
+        "options": {}
+      },
+      "id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      "name": "Crear Carpeta Principal en Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        40,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/Advanced%20Leads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Lead ID\": $node[\"Parsear IA y Preparar Operación\"].json.lead_id, \"Nombre\": $node[\"Parsear IA y Preparar Operación\"].json.nombre, \"Email\": $node[\"Parsear IA y Preparar Operación\"].json.email, \"Teléfono\": $node[\"Parsear IA y Preparar Operación\"].json.telefono, \"Empresa\": $node[\"Parsear IA y Preparar Operación\"].json.empresa, \"Fuente\": $node[\"Parsear IA y Preparar Operación\"].json.fuente, \"Mensaje\": $node[\"Parsear IA y Preparar Operación\"].json.mensaje, \"Categoría\": $node[\"Parsear IA y Preparar Operación\"].json.categoria, \"Prioridad\": $node[\"Parsear IA y Preparar Operación\"].json.prioridad, \"Sentimiento\": $node[\"Parsear IA y Preparar Operación\"].json.sentimiento, \"Resumen\": $node[\"Parsear IA y Preparar Operación\"].json.resumen, \"Siguiente Acción\": $node[\"Parsear IA y Preparar Operación\"].json.siguiente_accion, \"Estado\": \"Procesado\", \"Expediente URL\": \"https://drive.google.com/drive/folders/\" + $node[\"Crear Carpeta Principal en Drive\"].json.id, \"Carpeta Drive ID\": $node[\"Crear Carpeta Principal en Drive\"].json.id, \"Fecha de registro\": $node[\"Parsear IA y Preparar Operación\"].json.fecha_registro, \"JSON Original\": $node[\"Parsear IA y Preparar Operación\"].json.json_original, \"AI Raw Response\": $node[\"Parsear IA y Preparar Operación\"].json.ai_raw_response } } ] }) }}",
+        "options": {}
+      },
+      "id": "eeeeeeee-dddd-4eee-8eee-eeeeeeeeeeee",
+      "name": "Registrar Lead Avanzado en Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/Follow%20Up%20Tasks",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Task ID\": $node[\"Parsear IA y Preparar Operación\"].json.task_id, \"Lead ID\": $node[\"Parsear IA y Preparar Operación\"].json.lead_id, \"Nombre\": $node[\"Parsear IA y Preparar Operación\"].json.nombre, \"Email\": $node[\"Parsear IA y Preparar Operación\"].json.email, \"Teléfono\": $node[\"Parsear IA y Preparar Operación\"].json.telefono, \"Prioridad\": $node[\"Parsear IA y Preparar Operación\"].json.prioridad, \"Tipo de seguimiento\": $node[\"Parsear IA y Preparar Operación\"].json.tipo_seguimiento, \"Siguiente Acción\": $node[\"Parsear IA y Preparar Operación\"].json.siguiente_accion, \"Estado\": \"Pendiente\", \"Fecha de creación\": new Date().toISOString().slice(0, 10), \"Fecha sugerida de contacto\": $node[\"Parsear IA y Preparar Operación\"].json.fecha_sugerida_contacto } } ] }) }}",
+        "options": {}
+      },
+      "id": "ffffffff-dddd-4fff-8fff-ffffffffffff",
+      "name": "Crear Tarea de Seguimiento",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/Automation%20Logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Log ID\": \"LOG-\" + Date.now(), \"Workflow\": \"06 - Advanced Lead Operations Workflow\", \"Evento\": \"Lead Processed\", \"Estado\": \"Success\", \"Mensaje\": \"Lead procesado correctamente. Se creó registro, expediente y tarea de seguimiento.\", \"Lead ID\": $node[\"Parsear IA y Preparar Operación\"].json.lead_id, \"Fecha\": new Date().toISOString().slice(0, 10), \"JSON\": JSON.stringify({ lead: $node[\"Parsear IA y Preparar Operación\"].json, drive_folder_id: $node[\"Crear Carpeta Principal en Drive\"].json.id }) } } ] }) }}",
+        "options": {}
+      },
+      "id": "12121212-dddd-4121-8121-121212121212",
+      "name": "Crear Log Éxito",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: \"Lead processed successfully.\", lead_id: $node[\"Parsear IA y Preparar Operación\"].json.lead_id, duplicated: false, categoria: $node[\"Parsear IA y Preparar Operación\"].json.categoria, prioridad: $node[\"Parsear IA y Preparar Operación\"].json.prioridad, sentimiento: $node[\"Parsear IA y Preparar Operación\"].json.sentimiento, resumen: $node[\"Parsear IA y Preparar Operación\"].json.resumen, siguiente_accion: $node[\"Parsear IA y Preparar Operación\"].json.siguiente_accion, expediente_url: \"https://drive.google.com/drive/folders/\" + $node[\"Crear Carpeta Principal en Drive\"].json.id, task_created: true, log_created: true }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "13131313-dddd-4131-8131-131313131313",
+      "name": "Responder Lead Procesado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1000,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Recibir Lead Avanzado": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Datos": {
+      "main": [
+        [
+          {
+            "node": "Validar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Datos": {
+      "main": [
+        [
+          {
+            "node": "¿Datos válidos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Datos válidos?": {
+      "main": [
+        [
+          {
+            "node": "Buscar Duplicado en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear Log Error Validación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Log Error Validación": {
+      "main": [
+        [
+          {
+            "node": "Responder Error de Validación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Duplicado en Airtable": {
+      "main": [
+        [
+          {
+            "node": "¿Existe duplicado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Existe duplicado?": {
+      "main": [
+        [
+          {
+            "node": "Crear Log Lead Duplicado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OpenAI - Clasificar Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Log Lead Duplicado": {
+      "main": [
+        [
+          {
+            "node": "Responder Lead Duplicado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Clasificar Lead": {
+      "main": [
+        [
+          {
+            "node": "Parsear IA y Preparar Operación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear IA y Preparar Operación": {
+      "main": [
+        [
+          {
+            "node": "Crear Carpeta Principal en Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Carpeta Principal en Drive": {
+      "main": [
+        [
+          {
+            "node": "Registrar Lead Avanzado en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Lead Avanzado en Airtable": {
+      "main": [
+        [
+          {
+            "node": "Crear Tarea de Seguimiento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Tarea de Seguimiento": {
+      "main": [
+        [
+          {
+            "node": "Crear Log Éxito",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Log Éxito": {
+      "main": [
+        [
+          {
+            "node": "Responder Lead Procesado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "versionId": "00000000-0000-0000-0000-000000000000",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
