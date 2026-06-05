@@ -1,3 +1,5 @@
+[English](./README.md) | [Español](./README.es.md)
+
 # 01 - Lead Capture with Duplicate Detection
 
 ## Objective
