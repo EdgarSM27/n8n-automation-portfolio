@@ -1,15 +1,15 @@
 # n8n Automation Portfolio
 
-Automation portfolio focused on business process automation using n8n, Airtable, REST APIs, JSON, webhooks, validation logic, Google Drive automation and workflow documentation.
+Automation portfolio focused on business process automation using n8n, Airtable, Google Drive, OpenAI API, REST APIs, JSON, webhooks, validation logic and workflow documentation.
 
-This repository contains practical automation projects designed to solve real business problems such as lead capture, duplicate detection, client follow-up, file organization, reporting and API integrations.
+This repository contains practical automation projects designed to solve real business problems such as lead capture, duplicate detection, client follow-up, file organization, automatic reporting, API integrations and AI-powered message classification.
 
 ## Main Skills Demonstrated
 
 - Workflow automation with n8n
 - Webhook-based data capture
 - REST API integration
-- GET and POST requests
+- GET, POST and PUT requests
 - JSON parsing and transformation
 - Airtable integration
 - Google Drive automation
@@ -20,6 +20,9 @@ This repository contains practical automation projects designed to solve real bu
 - Business process documentation
 - Token-based authentication
 - Google OAuth2 integration
+- AI-powered message classification
+- OpenAI API integration
+- Prompt engineering for structured JSON output
 
 ## Projects
 
@@ -96,6 +99,27 @@ Main tools used:
 
 Status: Completed
 
+---
+
+### [05 - AI Message Classification Workflow](./05-ai-message-classification-workflow)
+
+This workflow receives a prospect message through a webhook, validates the input data, sends the message to OpenAI for classification, stores the result in Airtable and returns a structured JSON response with category, priority, sentiment, summary and suggested next action.
+
+Main tools used:
+
+- n8n
+- OpenAI API
+- Airtable API
+- Webhook
+- HTTP Request nodes
+- JavaScript Code node
+- JSON
+- Prompt engineering
+- Structured AI output
+- Token-based authentication
+
+Status: Completed
+
 ## Repository Structure
 
 ```text
@@ -111,6 +135,7 @@ n8n-automation-portfolio/
 │   ├── sample-output-duplicated.json
 │   ├── sample-output-validation-error.json
 │   └── screenshots/
+│
 ├── 02-client-file-automation/
 │   ├── README.md
 │   ├── workflow.json
@@ -119,17 +144,34 @@ n8n-automation-portfolio/
 │   ├── sample-output-success.json
 │   ├── sample-output-validation-error.json
 │   └── screenshots/
+│
 ├── 03-automatic-follow-up-report/
 │   ├── README.md
 │   ├── workflow.json
 │   ├── sample-output-report-summary.json
 │   ├── sample-report.txt
 │   └── screenshots/
+│
 ├── 04-rest-api-integration-workflow/
 │   ├── README.md
 │   ├── workflow.json
 │   ├── sample-output-summary.json
 │   └── screenshots/
+│
+├── 05-ai-message-classification-workflow/
+│   ├── README.md
+│   ├── workflow.json
+│   ├── sample-input.json
+│   ├── sample-input-invalid.json
+│   ├── sample-output-success.json
+│   ├── sample-output-validation-error.json
+│   └── screenshots/
+│       ├── 01-n8n-workflow.png
+│       ├── 02-openai-classification-output.png
+│       ├── 03-airtable-classification-record.png
+│       ├── 04-success-response.png
+│       └── 05-validation-error-response.png
+│
 └── docs/
     ├── security.md
     ├── error-handling.md
@@ -138,13 +180,15 @@ n8n-automation-portfolio/
 
 ## Security Note
 
-All exported workflows included in this repository must be sanitized before publishing. API keys, Airtable personal access tokens, Google credentials, folder IDs and private identifiers must be replaced with placeholder values.
+All exported workflows included in this repository must be sanitized before publishing. API keys, Airtable personal access tokens, OpenAI API keys, Google credentials, folder IDs and private identifiers must be replaced with placeholder values.
 
 Example placeholders:
 
 ```text
 Bearer AIRTABLE_TOKEN_HERE
+Bearer OPENAI_API_KEY_HERE
 PARENT_FOLDER_ID_HERE
+REPORTS_FOLDER_ID_HERE
 GOOGLE_DRIVE_CREDENTIAL_PLACEHOLDER
 ```
 
