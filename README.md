@@ -77,6 +77,25 @@ Main tools used:
 
 Status: Completed
 
+---
+
+### [04 - REST API Integration Workflow](./04-rest-api-integration-workflow)
+
+This workflow demonstrates REST API integration using GET, POST and PUT requests, JSON payloads, headers, token-based authentication and response validation.
+
+Main tools used:
+
+- n8n
+- HTTP Request nodes
+- JavaScript Code node
+- REST API methods
+- GET, POST and PUT requests
+- JSON
+- Bearer token header
+- Response validation
+
+Status: Completed
+
 ## Repository Structure
 
 ```text
@@ -107,7 +126,11 @@ n8n-automation-portfolio/
 │   ├── sample-output-report-summary.json
 │   ├── sample-report.txt
 │   └── screenshots/
-│
+│├── 04-rest-api-integration-workflow/
+│   ├── README.md
+│   ├── workflow.json
+│   ├── sample-output-summary.json
+│   └── screenshots/
 └── docs/
     ├── security.md
     ├── error-handling.md
