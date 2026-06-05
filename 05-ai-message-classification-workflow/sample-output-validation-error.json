@@ -1,1 +1,9 @@
 
+{
+  "success": false,
+  "message": "El mensaje tiene datos incompletos o inválidos.",
+  "errores": [
+    "Mensaje inválido o vacío",
+    "Nombre inválido o vacío"
+  ]
+}
