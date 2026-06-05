@@ -1,1 +1,21 @@
-
+{
+  "success": true,
+  "message": "Reporte generado correctamente.",
+  "report_date": "2026-06-05",
+  "report_file_name": "follow-up-report-2026-06-05.txt",
+  "report_file_id": "DRIVE_FILE_ID",
+  "report_url": "https://drive.google.com/file/d/DRIVE_FILE_ID/view",
+  "total_leads": 1,
+  "total_clients": 3,
+  "leads_by_status": {
+    "Nuevo": 1
+  },
+  "leads_by_priority": {
+    "Media": 1
+  },
+  "clients_by_status": {
+    "Sin valor": 1,
+    "Completo": 1,
+    "Expediente creado": 1
+  }
+}
