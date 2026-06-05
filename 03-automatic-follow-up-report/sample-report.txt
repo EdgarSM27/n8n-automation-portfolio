@@ -1,1 +1,25 @@
+AUTOMATIC FOLLOW-UP REPORT
 
+Report date: 2026-06-05
+
+SUMMARY
+- Total leads: 1
+- New leads: 1
+- Contacted leads: 0
+- Leads in follow-up: 0
+- Total clients: 3
+- Clients with created file: 1
+
+LEADS BY STATUS
+- Nuevo: 1
+
+LEADS BY PRIORITY
+- Media: 1
+
+CLIENTS BY STATUS
+- Sin valor: 1
+- Completo: 1
+- Expediente creado: 1
+
+BUSINESS NOTES
+Reporte creado automaticamente desde n8n con informacion de Airtable
