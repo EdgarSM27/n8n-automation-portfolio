@@ -1,3 +1,5 @@
+[English](./README.md) | [Español](./README.es.md)
+
 # 05 - Clasificación de Mensajes con IA
 
 ## Objetivo
