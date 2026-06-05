@@ -1,1 +1,231 @@
-
+{
+  "name": "03 - Automatic Follow-Up Report",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "11111111-aaaa-4111-8111-111111111111",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/Leads",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "maxRecords",
+              "value": "100"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "22222222-aaaa-4222-8222-222222222222",
+      "name": "Consultar Leads en Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -760,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.airtable.com/v0/appkwWvR1K7frrmVN/Clientes",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "maxRecords",
+              "value": "100"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "33333333-aaaa-4333-8333-333333333333",
+      "name": "Consultar Clientes en Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const leads = $node[\"Consultar Leads en Airtable\"].json.records || [];\nconst clientes = $node[\"Consultar Clientes en Airtable\"].json.records || [];\n\nfunction countByField(records, fieldName) {\n  const result = {};\n  for (const record of records) {\n    const value = record.fields?.[fieldName] || \"Sin valor\";\n    result[value] = (result[value] || 0) + 1;\n  }\n  return result;\n}\n\nconst leadsByStatus = countByField(leads, \"Estado\");\nconst leadsByPriority = countByField(leads, \"Prioridad\");\nconst clientsByStatus = countByField(clientes, \"Estado\");\n\nconst totalLeads = leads.length;\nconst totalClientes = clientes.length;\nconst leadsNuevos = leadsByStatus[\"Nuevo\"] || 0;\nconst leadsContactados = leadsByStatus[\"Contactado\"] || 0;\nconst leadsSeguimiento = leadsByStatus[\"En seguimiento\"] || 0;\nconst clientesExpedienteCreado = clientsByStatus[\"Expediente creado\"] || 0;\n\nconst now = new Date();\nconst reportDate = now.toISOString().slice(0, 10);\nconst fileName = `follow-up-report-${reportDate}.txt`;\n\nconst reportText = `AUTOMATIC FOLLOW-UP REPORT\\n\\nReport date: ${reportDate}\\n\\nSUMMARY\\n- Total leads: ${totalLeads}\\n- New leads: ${leadsNuevos}\\n- Contacted leads: ${leadsContactados}\\n- Leads in follow-up: ${leadsSeguimiento}\\n- Total clients: ${totalClientes}\\n- Clients with created file: ${clientesExpedienteCreado}\\n\\nLEADS BY STATUS\\n${Object.entries(leadsByStatus).map(([key, value]) => `- ${key}: ${value}`).join(\"\\n\") || \"- No lead data available\"}\\n\\nLEADS BY PRIORITY\\n${Object.entries(leadsByPriority).map(([key, value]) => `- ${key}: ${value}`).join(\"\\n\") || \"- No priority data available\"}\\n\\nCLIENTS BY STATUS\\n${Object.entries(clientsByStatus).map(([key, value]) => `- ${key}: ${value}`).join(\"\\n\") || \"- No client data available\"}\\n\\nBUSINESS NOTES\\nReporte creado automaticamente desde n8n con informacion de Airtable\\n`;\n\nreturn [\n  {\n    json: {\n      success: true,\n      report_date: reportDate,\n      report_file_name: fileName,\n      total_leads: totalLeads,\n      total_clients: totalClientes,\n      leads_by_status: leadsByStatus,\n      leads_by_priority: leadsByPriority,\n      clients_by_status: clientsByStatus,\n      report_text: reportText\n    }\n  }\n];"
+      },
+      "id": "44444444-aaaa-4444-8444-444444444444",
+      "name": "Procesar Métricas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nreturn [\n  {\n    json: {\n      ...item\n    },\n    binary: {\n      data: {\n        data: Buffer.from(item.report_text, \"utf8\").toString(\"base64\"),\n        mimeType: \"text/plain\",\n        fileName: item.report_file_name\n      }\n    }\n  }\n];"
+      },
+      "id": "55555555-aaaa-4555-8555-555555555555",
+      "name": "Crear Archivo de Reporte",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "REPORTS_FOLDER_ID_HERE"
+        },
+        "inputDataFieldName": "data",
+        "name": "={{ $node[\"Procesar Métricas\"].json.report_file_name }}",
+        "options": {}
+      },
+      "id": "66666666-aaaa-4666-8666-666666666666",
+      "name": "Guardar Reporte en Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const metrics = $node[\"Procesar Métricas\"].json;\nconst driveFile = $node[\"Guardar Reporte en Google Drive\"].json;\n\nreturn [\n  {\n    json: {\n      success: true,\n      message: \"Reporte generado correctamente.\",\n      report_date: metrics.report_date,\n      report_file_name: metrics.report_file_name,\n      report_file_id: driveFile.id || \"DRIVE_FILE_ID\",\n      report_url: driveFile.webViewLink || (driveFile.id ? `https://drive.google.com/file/d/${driveFile.id}/view` : \"REPORT_URL_NOT_AVAILABLE\"),\n      total_leads: metrics.total_leads,\n      total_clients: metrics.total_clients,\n      leads_by_status: metrics.leads_by_status,\n      leads_by_priority: metrics.leads_by_priority,\n      clients_by_status: metrics.clients_by_status\n    }\n  }\n];"
+      },
+      "id": "77777777-aaaa-4777-8777-777777777777",
+      "name": "Resumen Final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Consultar Leads en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Leads en Airtable": {
+      "main": [
+        [
+          {
+            "node": "Consultar Clientes en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Clientes en Airtable": {
+      "main": [
+        [
+          {
+            "node": "Procesar Métricas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar Métricas": {
+      "main": [
+        [
+          {
+            "node": "Crear Archivo de Reporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Archivo de Reporte": {
+      "main": [
+        [
+          {
+            "node": "Guardar Reporte en Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar Reporte en Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Resumen Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "versionId": "00000000-0000-0000-0000-000000000000",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
