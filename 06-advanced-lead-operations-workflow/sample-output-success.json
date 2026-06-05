@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "message": "Lead processed successfully.",
+  "lead_id": "ADV-LEAD-178069119145",
+  "duplicated": false,
+  "categoria": "Solicita llamada",
+  "prioridad": "Alta",
+  "sentimiento": "Interesado",
+  "resumen": "Carlos Ramirez de Empresa Demo solicita precios, disponibilidad y agendar una llamada esta semana.",
+  "siguiente_accion": "Contactar a Carlos para proporcionar información solicitada y coordinar llamada.",
+  "expediente_url": "https://drive.google.com/drive/folders/DRIVE_FOLDER_ID",
+  "task_created": true,
+  "log_created": true
+}
