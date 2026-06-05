@@ -1,3 +1,5 @@
+[English](./README.md) | [Español](./README.es.md)
+
 # 01 - Captación de Leads con Detección de Duplicados
 
 ## Objetivo
