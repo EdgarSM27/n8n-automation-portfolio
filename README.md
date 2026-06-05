@@ -58,6 +58,25 @@ Main tools used:
 
 Status: Completed
 
+---
+
+### [03 - Automatic Follow-Up Report](./03-automatic-follow-up-report)
+
+This workflow generates an automatic follow-up report using Airtable data, calculates business metrics, creates a text report and saves it in Google Drive.
+
+Main tools used:
+
+- n8n
+- Airtable API
+- Google Drive
+- HTTP Request nodes
+- JavaScript Code node
+- JSON
+- Binary file generation
+- Google OAuth2
+
+Status: Completed
+
 ## Repository Structure
 
 ```text
@@ -81,6 +100,12 @@ n8n-automation-portfolio/
 │   ├── sample-input-invalid.json
 │   ├── sample-output-success.json
 │   ├── sample-output-validation-error.json
+│   └── screenshots/
+├── 03-automatic-follow-up-report/
+│   ├── README.md
+│   ├── workflow.json
+│   ├── sample-output-report-summary.json
+│   ├── sample-report.txt
 │   └── screenshots/
 │
 └── docs/
