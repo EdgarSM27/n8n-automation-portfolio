@@ -1,1 +1,12 @@
 
+{
+  "success": true,
+  "message": "Mensaje clasificado correctamente.",
+  "classification_id": "CLS-1780685683783",
+  "nombre": "Carlos Ramirez",
+  "categoria": "Solicita precio",
+  "prioridad": "Alta",
+  "sentimiento": "Interesado",
+  "resumen": "Carlos Ramirez solicita conocer precios, disponibilidad y desea agendar una llamada para revisar detalles.",
+  "siguiente_accion": "Contactar a Carlos para proporcionar precios y agendar la llamada."
+}
