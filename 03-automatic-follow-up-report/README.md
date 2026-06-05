@@ -1,3 +1,5 @@
+[English](./README.md) | [Español](./README.es.md)
+
 # 03 - Automatic Follow-Up Report
 
 ## Objective
