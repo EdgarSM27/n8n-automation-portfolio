@@ -1,1 +1,33 @@
 
+{
+  "success": true,
+  "message": "REST API integration workflow completed successfully.",
+  "request_id": "REQ-1234567890",
+  "api_base_url": "https://jsonplaceholder.typicode.com",
+  "methods_used": ["GET", "POST", "PUT"],
+  "authentication_type": "Bearer token header",
+  "content_type": "application/json",
+  "get_request": "completed",
+  "post_request": "completed",
+  "put_request": "completed",
+  "validations": [
+    {
+      "method": "GET",
+      "endpoint": "/posts/1",
+      "success": true,
+      "received_id": 1
+    },
+    {
+      "method": "POST",
+      "endpoint": "/posts",
+      "success": true,
+      "created_id": 101
+    },
+    {
+      "method": "PUT",
+      "endpoint": "/posts/1",
+      "success": true,
+      "updated_id": 1
+    }
+  ]
+}
