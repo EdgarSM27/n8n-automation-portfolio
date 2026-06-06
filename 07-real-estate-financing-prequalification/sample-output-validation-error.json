@@ -1,0 +1,15 @@
+{
+  "success": false,
+  "message": "La solicitud tiene datos incompletos o inválidos.",
+  "errores": [
+    "Nombre inválido o vacío",
+    "Email inválido o vacío",
+    "Teléfono inválido o vacío",
+    "Ciudad inválida o vacía",
+    "Valor de propiedad inválido",
+    "Ingreso mensual inválido",
+    "Plazo deseado inválido",
+    "Mensaje inválido o vacío"
+  ],
+  "log_created": true
+}
