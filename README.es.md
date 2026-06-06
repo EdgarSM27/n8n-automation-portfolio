@@ -4,7 +4,7 @@
 
 Portafolio enfocado en automatización de procesos de negocio utilizando n8n, Airtable, Google Drive, OpenAI API, APIs REST, JSON, webhooks, validación de datos y documentación técnica de workflows.
 
-Este repositorio contiene proyectos prácticos de automatización diseñados para resolver problemas reales de negocio, como captación de leads, detección de duplicados, seguimiento de clientes, organización de expedientes, reportes automáticos, integración con APIs, clasificación de mensajes con IA y operaciones avanzadas tipo CRM.
+Este repositorio contiene proyectos prácticos de automatización diseñados para resolver problemas reales de negocio, como captación de leads, detección de duplicados, seguimiento de clientes, organización de expedientes, reportes automáticos, integración con APIs, clasificación de mensajes con IA, operaciones avanzadas tipo CRM y precalificación para financiamiento inmobiliario.
 
 ## Habilidades demostradas
 
@@ -29,6 +29,10 @@ Este repositorio contiene proyectos prácticos de automatización diseñados par
 - Arquitectura de workflows tipo CRM
 - Creación de tareas de seguimiento
 - Registro de logs y trazabilidad de automatizaciones
+- Precalificación para financiamiento inmobiliario
+- Lógica básica de validación financiera
+- Cálculo de relación pago-ingreso
+- Automatización de solicitudes de financiamiento
 
 ## Proyectos
 
@@ -167,6 +171,7 @@ Herramientas principales:
 - JSON
 - Google OAuth2
 - Lógica de precalificación financiera
+- Cálculo de relación pago-ingreso
 - Creación de tareas de seguimiento
 - Registro de logs de automatización
 
@@ -244,6 +249,23 @@ n8n-automation-portfolio/
 │       ├── 07-automation-log-record.png
 │       └── 08-google-drive-folder.png
 │
+├── 07-real-estate-financing-prequalification/
+│   ├── README.md
+│   ├── README.es.md
+│   ├── workflow.json
+│   ├── sample-input.json
+│   ├── sample-input-invalid.json
+│   ├── sample-output-success.json
+│   ├── sample-output-validation-error.json
+│   └── screenshots/
+│       ├── 01-n8n-workflow.png
+│       ├── 02-success-response.png
+│       ├── 03-validation-error-response.png
+│       ├── 04-financing-application-record.png
+│       ├── 05-financing-follow-up-task-record.png
+│       ├── 06-financing-automation-log-record.png
+│       └── 07-google-drive-folder.png
+│
 └── docs/
     ├── security.md
     ├── error-handling.md
@@ -259,15 +281,18 @@ Ejemplos de placeholders:
 ```text
 Bearer AIRTABLE_TOKEN_HERE
 Bearer OPENAI_API_KEY_HERE
+AIRTABLE_BASE_ID_HERE
 PARENT_FOLDER_ID_HERE
 REPORTS_FOLDER_ID_HERE
 ADVANCED_LEADS_FOLDER_ID_HERE
+FINANCING_APPLICATIONS_FOLDER_ID_HERE
 GOOGLE_DRIVE_CREDENTIAL_PLACEHOLDER
 ```
 
+Nunca publiques credenciales reales en un repositorio público.
 
 ## Propósito
 
 El propósito de este portafolio es demostrar habilidades prácticas de automatización utilizando n8n y herramientas relacionadas. Cada proyecto incluye el workflow exportado, entradas de ejemplo, salidas de ejemplo, capturas de pantalla y documentación que explica el problema de negocio, la solución y la implementación técnica.
 
-Este portafolio está orientado a demostrar experiencia práctica en automatización de procesos, integración de sistemas, documentación técnica y diseño de flujos medibles para áreas como ventas, administración, seguimiento comercial y operaciones.
+Este portafolio está orientado a demostrar experiencia práctica en automatización de procesos, integración de sistemas, documentación técnica y diseño de flujos medibles para áreas como ventas, administración, seguimiento comercial, operaciones y financiamiento inmobiliario.
