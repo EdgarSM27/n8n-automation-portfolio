@@ -149,6 +149,29 @@ Herramientas principales:
 
 Estado: Completado
 
+---
+
+### [07 - Workflow de Precalificación para Financiamiento Inmobiliario](./07-real-estate-financing-prequalification)
+
+Este workflow recibe una solicitud de financiamiento inmobiliario mediante un webhook, valida los datos del prospecto, calcula una precalificación básica, analiza el caso con OpenAI, crea un expediente en Google Drive, registra la solicitud en Airtable, crea una tarea de seguimiento, almacena logs de automatización y devuelve una respuesta JSON estructurada.
+
+Herramientas principales:
+
+- n8n
+- OpenAI API
+- Airtable API
+- Google Drive
+- Webhook
+- Nodos HTTP Request
+- Nodo JavaScript Code
+- JSON
+- Google OAuth2
+- Lógica de precalificación financiera
+- Creación de tareas de seguimiento
+- Registro de logs de automatización
+
+Estado: Completado
+
 ## Estructura del repositorio
 
 ```text
