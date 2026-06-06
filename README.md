@@ -2,9 +2,9 @@
 
 # n8n Automation Portfolio
 
-Automation portfolio focused on business process automation using n8n, Airtable, Google Drive, OpenAI API, REST APIs, JSON, webhooks, validation logic and workflow documentation.
+Portfolio focused on business process automation using n8n, Airtable, Google Drive, OpenAI API, REST APIs, JSON, webhooks, data validation and technical workflow documentation.
 
-This repository contains practical automation projects designed to solve real business problems such as lead capture, duplicate detection, client follow-up, file organization, automatic reporting, API integrations and AI-powered message classification.
+This repository contains practical automation projects designed to solve real business problems such as lead capture, duplicate detection, client file organization, automatic reporting, REST API integration, AI-powered message classification, advanced CRM-style lead operations and real estate financing prequalification.
 
 ## Main Skills Demonstrated
 
@@ -29,12 +29,16 @@ This repository contains practical automation projects designed to solve real bu
 - CRM-style workflow architecture
 - Follow-up task creation
 - Automation logging and audit trail
+- Real estate financing prequalification
+- Basic financial validation logic
+- Payment-to-income ratio calculation
+- Financing application workflow automation
 
 ## Projects
 
 ### [01 - Lead Capture with Duplicate Detection](./01-lead-capture-duplicate-detection)
 
-This workflow receives lead information through a webhook, validates the required fields, searches Airtable to detect duplicates, creates a new record only when the lead does not already exist and returns a structured JSON response.
+This workflow receives lead information through a webhook, validates the required fields, searches for duplicates in Airtable, creates a new record only when the lead does not already exist and returns a structured JSON response.
 
 Main tools used:
 
@@ -50,9 +54,9 @@ Status: Completed
 
 ---
 
-### [02 - Client File Automation with Google Drive](./02-client-file-automation)
+### [02 - Client File Automation](./02-client-file-automation)
 
-This workflow receives client information through a webhook, validates the data, creates a structured client file in Google Drive, registers the client in Airtable and returns the generated folder URL.
+This workflow receives client information through a webhook, validates the data, creates a structured client folder in Google Drive, registers the client in Airtable and returns the generated folder URL.
 
 Main tools used:
 
@@ -71,7 +75,7 @@ Status: Completed
 
 ### [03 - Automatic Follow-Up Report](./03-automatic-follow-up-report)
 
-This workflow generates an automatic follow-up report using Airtable data, calculates business metrics, creates a text report and saves it in Google Drive.
+This workflow generates an automatic follow-up report using Airtable data, calculates business metrics, creates a text file and saves it in Google Drive.
 
 Main tools used:
 
@@ -90,7 +94,7 @@ Status: Completed
 
 ### [04 - REST API Integration Workflow](./04-rest-api-integration-workflow)
 
-This workflow demonstrates REST API integration using GET, POST and PUT requests, JSON payloads, headers, token-based authentication and response validation.
+This workflow demonstrates REST API integration using GET, POST and PUT requests, JSON payloads, headers, Bearer token-style authentication and response validation.
 
 Main tools used:
 
@@ -109,7 +113,7 @@ Status: Completed
 
 ### [05 - AI Message Classification Workflow](./05-ai-message-classification-workflow)
 
-This workflow receives a prospect message through a webhook, validates the input data, sends the message to OpenAI for classification, stores the result in Airtable and returns a structured JSON response with category, priority, sentiment, summary and suggested next action.
+This workflow receives a prospect message through a webhook, validates the data, sends the message to OpenAI for classification, stores the result in Airtable and returns a structured JSON response with category, priority, sentiment, summary and suggested next action.
 
 Main tools used:
 
@@ -167,6 +171,7 @@ Main tools used:
 - JSON
 - Google OAuth2
 - Financial prequalification logic
+- Payment-to-income ratio calculation
 - Follow-up task creation
 - Automation logs
 
@@ -178,9 +183,11 @@ Status: Completed
 n8n-automation-portfolio/
 │
 ├── README.md
+├── README.es.md
 │
 ├── 01-lead-capture-duplicate-detection/
 │   ├── README.md
+│   ├── README.es.md
 │   ├── workflow.json
 │   ├── sample-input.json
 │   ├── sample-output-new-lead.json
@@ -190,6 +197,7 @@ n8n-automation-portfolio/
 │
 ├── 02-client-file-automation/
 │   ├── README.md
+│   ├── README.es.md
 │   ├── workflow.json
 │   ├── sample-input.json
 │   ├── sample-input-invalid.json
@@ -199,6 +207,7 @@ n8n-automation-portfolio/
 │
 ├── 03-automatic-follow-up-report/
 │   ├── README.md
+│   ├── README.es.md
 │   ├── workflow.json
 │   ├── sample-output-report-summary.json
 │   ├── sample-report.txt
@@ -206,23 +215,20 @@ n8n-automation-portfolio/
 │
 ├── 04-rest-api-integration-workflow/
 │   ├── README.md
+│   ├── README.es.md
 │   ├── workflow.json
 │   ├── sample-output-summary.json
 │   └── screenshots/
 │
 ├── 05-ai-message-classification-workflow/
 │   ├── README.md
+│   ├── README.es.md
 │   ├── workflow.json
 │   ├── sample-input.json
 │   ├── sample-input-invalid.json
 │   ├── sample-output-success.json
 │   ├── sample-output-validation-error.json
 │   └── screenshots/
-│       ├── 01-n8n-workflow.png
-│       ├── 02-openai-classification-output.png
-│       ├── 03-airtable-classification-record.png
-│       ├── 04-success-response.png
-│       └── 05-validation-error-response.png
 │
 ├── 06-advanced-lead-operations-workflow/
 │   ├── README.md
@@ -243,6 +249,23 @@ n8n-automation-portfolio/
 │       ├── 07-automation-log-record.png
 │       └── 08-google-drive-folder.png
 │
+├── 07-real-estate-financing-prequalification/
+│   ├── README.md
+│   ├── README.es.md
+│   ├── workflow.json
+│   ├── sample-input.json
+│   ├── sample-input-invalid.json
+│   ├── sample-output-success.json
+│   ├── sample-output-validation-error.json
+│   └── screenshots/
+│       ├── 01-n8n-workflow.png
+│       ├── 02-success-response.png
+│       ├── 03-validation-error-response.png
+│       ├── 04-financing-application-record.png
+│       ├── 05-financing-follow-up-task-record.png
+│       ├── 06-financing-automation-log-record.png
+│       └── 07-google-drive-folder.png
+│
 └── docs/
     ├── security.md
     ├── error-handling.md
@@ -251,18 +274,25 @@ n8n-automation-portfolio/
 
 ## Security Note
 
-All exported workflows included in this repository must be sanitized before publishing. API keys, Airtable personal access tokens, OpenAI API keys, Google credentials, folder IDs and private identifiers must be replaced with placeholder values.
+All exported workflows included in this repository must be cleaned before publishing. API keys, Airtable personal access tokens, OpenAI API keys, Google credentials, folder IDs and private identifiers must be replaced with placeholder values.
 
 Example placeholders:
 
 ```text
 Bearer AIRTABLE_TOKEN_HERE
 Bearer OPENAI_API_KEY_HERE
+AIRTABLE_BASE_ID_HERE
 PARENT_FOLDER_ID_HERE
 REPORTS_FOLDER_ID_HERE
+ADVANCED_LEADS_FOLDER_ID_HERE
+FINANCING_APPLICATIONS_FOLDER_ID_HERE
 GOOGLE_DRIVE_CREDENTIAL_PLACEHOLDER
 ```
 
+Never commit real credentials to a public repository.
+
 ## Purpose
 
-The purpose of this portfolio is to demonstrate practical automation skills using n8n and related tools. Each project includes the exported workflow, example inputs, example outputs, screenshots and documentation explaining the business problem, solution and technical implementation.
+The purpose of this portfolio is to demonstrate practical automation skills using n8n and related tools. Each project includes the exported workflow, sample inputs, sample outputs, screenshots and documentation explaining the business problem, the solution and the technical implementation.
+
+This portfolio is oriented toward demonstrating practical experience in process automation, system integration, technical documentation and measurable workflow design for areas such as sales, administration, commercial follow-up, operations and real estate financing.
