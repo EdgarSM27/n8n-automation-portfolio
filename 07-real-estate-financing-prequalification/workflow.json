@@ -1,0 +1,478 @@
+{
+  "name": "07 - Real Estate Financing Prequalification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "real-estate-financing-prequalification",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "71111111-eeee-4111-8111-111111111111",
+      "name": "Webhook - Recibir Solicitud de Financiamiento",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst data =\n  input.body && Object.keys(input.body).length > 0\n    ? input.body\n    : input.query && Object.keys(input.query).length > 0\n      ? input.query\n      : input;\n\nfunction clean(value, fallback = '') {\n  return String(value ?? fallback).trim();\n}\n\nfunction money(value) {\n  const parsed = Number(String(value ?? 0).replace(/,/g, ''));\n  return Number.isFinite(parsed) ? parsed : 0;\n}\n\nconst applicationId = 'FIN-APP-' + Date.now();\nconst nombre = clean(data.nombre || data.name);\n\nreturn [\n  {\n    json: {\n      application_id: applicationId,\n      nombre,\n      email: clean(data.email || data.correo).toLowerCase(),\n      telefono: clean(data.telefono || data.phone || data.celular),\n      ciudad: clean(data.ciudad || data.city),\n      tipo_propiedad: clean(data.tipo_propiedad || data.property_type || 'Otro'),\n      valor_propiedad: money(data.valor_propiedad || data.property_value),\n      enganche_disponible: money(data.enganche_disponible || data.down_payment),\n      ingreso_mensual: money(data.ingreso_mensual || data.monthly_income),\n      plazo_deseado_anios: Number(data.plazo_deseado_anios || data.plazo || data.term_years || 0),\n      mensaje: clean(data.mensaje || data.message),\n      fecha_registro: new Date().toISOString().slice(0, 10),\n      folder_name: `FIN-${applicationId} - ${nombre}`,\n      json_original: JSON.stringify(data)\n    }\n  }\n];"
+      },
+      "id": "72222222-eeee-4222-8222-222222222222",
+      "name": "Normalizar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1860,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst errores = [];\n\nconst allowedPropertyTypes = ['Casa', 'Departamento', 'Terreno', 'Local comercial', 'Otro'];\n\nif (!item.nombre || item.nombre.length < 2) errores.push('Nombre inválido o vacío');\nif (!item.email || !item.email.includes('@')) errores.push('Email inválido o vacío');\nif (!item.telefono || item.telefono.length < 7) errores.push('Teléfono inválido o vacío');\nif (!item.ciudad || item.ciudad.length < 2) errores.push('Ciudad inválida o vacía');\nif (!allowedPropertyTypes.includes(item.tipo_propiedad)) errores.push('Tipo de propiedad inválido');\nif (!item.valor_propiedad || item.valor_propiedad <= 0) errores.push('Valor de propiedad inválido');\nif (item.enganche_disponible < 0) errores.push('Enganche disponible inválido');\nif (item.enganche_disponible > item.valor_propiedad) errores.push('El enganche no puede ser mayor al valor de la propiedad');\nif (!item.ingreso_mensual || item.ingreso_mensual <= 0) errores.push('Ingreso mensual inválido');\nif (!item.plazo_deseado_anios || item.plazo_deseado_anios <= 0) errores.push('Plazo deseado inválido');\nif (!item.mensaje || item.mensaje.length < 5) errores.push('Mensaje inválido o vacío');\n\nreturn [\n  {\n    json: {\n      ...item,\n      valido: errores.length === 0,\n      errores_validacion: errores\n    }\n  }\n];"
+      },
+      "id": "73333333-eeee-4333-8333-333333333333",
+      "name": "Validar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1620,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "validacion",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "74444444-eeee-4444-8444-444444444444",
+      "name": "¿Datos válidos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1380,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Financing%20Automation%20Logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Log ID\": \"LOG-\" + Date.now(), \"Workflow\": \"07 - Real Estate Financing Prequalification\", \"Evento\": \"Validation Error\", \"Estado\": \"Error\", \"Mensaje\": \"La solicitud tiene datos incompletos o inválidos.\", \"Application ID\": $node[\"Validar Datos\"].json.application_id || \"Sin Application ID\", \"Fecha\": new Date().toISOString().slice(0, 10), \"JSON\": JSON.stringify({ errores: $node[\"Validar Datos\"].json.errores_validacion, data: $node[\"Validar Datos\"].json }) } } ] }) }}",
+        "options": {}
+      },
+      "id": "75555555-eeee-4555-8555-555555555555",
+      "name": "Crear Log Error Validación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1140,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: \"La solicitud tiene datos incompletos o inválidos.\", errores: $node[\"Validar Datos\"].json.errores_validacion, log_created: true }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "76666666-eeee-4666-8666-666666666666",
+      "name": "Responder Error de Validación",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -900,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst valorPropiedad = Number(item.valor_propiedad);\nconst enganche = Number(item.enganche_disponible);\nconst ingresoMensual = Number(item.ingreso_mensual);\nconst plazoAnios = Number(item.plazo_deseado_anios);\n\nconst montoFinanciar = Math.max(valorPropiedad - enganche, 0);\nconst porcentajeEnganche = valorPropiedad > 0 ? (enganche / valorPropiedad) * 100 : 0;\n\n// Demo calculation only: estimated monthly payment using a fixed illustrative annual rate.\nconst annualRate = 0.12;\nconst monthlyRate = annualRate / 12;\nconst months = plazoAnios * 12;\nlet pagoEstimadoMensual = 0;\n\nif (montoFinanciar > 0 && months > 0) {\n  pagoEstimadoMensual = montoFinanciar * monthlyRate * Math.pow(1 + monthlyRate, months) / (Math.pow(1 + monthlyRate, months) - 1);\n}\n\nconst relacionPagoIngreso = ingresoMensual > 0 ? (pagoEstimadoMensual / ingresoMensual) * 100 : 999;\n\nlet resultadoPrecalificacion = 'No viable';\nlet prioridad = 'Baja';\nlet estado = 'Rechazada';\nlet diasContacto = 5;\n\nif (porcentajeEnganche >= 20 && relacionPagoIngreso <= 35) {\n  resultadoPrecalificacion = 'Preaprobado';\n  prioridad = 'Alta';\n  estado = 'Preaprobada';\n  diasContacto = 0;\n} else if (porcentajeEnganche >= 10 && relacionPagoIngreso <= 45) {\n  resultadoPrecalificacion = 'Requiere revisión';\n  prioridad = 'Media';\n  estado = 'En revisión';\n  diasContacto = 2;\n}\n\nconst fechaContacto = new Date();\nfechaContacto.setDate(fechaContacto.getDate() + diasContacto);\n\nreturn [\n  {\n    json: {\n      ...item,\n      monto_financiar: Number(montoFinanciar.toFixed(2)),\n      porcentaje_enganche: Number(porcentajeEnganche.toFixed(2)),\n      pago_estimado_mensual: Number(pagoEstimadoMensual.toFixed(2)),\n      relacion_pago_ingreso: Number(relacionPagoIngreso.toFixed(2)),\n      resultado_precalificacion: resultadoPrecalificacion,\n      prioridad,\n      estado,\n      fecha_sugerida_contacto: fechaContacto.toISOString().slice(0, 10),\n      task_id: 'FIN-TASK-' + Date.now()\n    }\n  }\n];"
+      },
+      "id": "77777777-eeee-4777-8777-777777777777",
+      "name": "Calcular Precalificación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1140,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/responses",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer OPENAI_API_KEY_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"gpt-4.1-mini\", input: [ { role: \"system\", content: \"You are an assistant for a real estate financing company. Analyze the application and return only valid JSON. Do not include markdown. This is not a final credit decision; it is an operational prequalification summary.\" }, { role: \"user\", content: `Analyze this real estate financing prequalification application.\\n\\nName: ${$node[\"Calcular Precalificación\"].json.nombre}\\nEmail: ${$node[\"Calcular Precalificación\"].json.email}\\nPhone: ${$node[\"Calcular Precalificación\"].json.telefono}\\nCity: ${$node[\"Calcular Precalificación\"].json.ciudad}\\nProperty type: ${$node[\"Calcular Precalificación\"].json.tipo_propiedad}\\nProperty value: ${$node[\"Calcular Precalificación\"].json.valor_propiedad}\\nAvailable down payment: ${$node[\"Calcular Precalificación\"].json.enganche_disponible}\\nDown payment percentage: ${$node[\"Calcular Precalificación\"].json.porcentaje_enganche}%\\nMonthly income: ${$node[\"Calcular Precalificación\"].json.ingreso_mensual}\\nDesired term years: ${$node[\"Calcular Precalificación\"].json.plazo_deseado_anios}\\nAmount to finance: ${$node[\"Calcular Precalificación\"].json.monto_financiar}\\nEstimated monthly payment: ${$node[\"Calcular Precalificación\"].json.pago_estimado_mensual}\\nPayment-to-income ratio: ${$node[\"Calcular Precalificación\"].json.relacion_pago_ingreso}%\\nPrequalification result: ${$node[\"Calcular Precalificación\"].json.resultado_precalificacion}\\nMessage: ${$node[\"Calcular Precalificación\"].json.mensaje}\\n\\nReturn: resumen_ia, siguiente_accion, notas_riesgo.` } ], text: { format: { type: \"json_schema\", name: \"real_estate_financing_prequalification\", schema: { type: \"object\", additionalProperties: false, properties: { resumen_ia: { type: \"string\" }, siguiente_accion: { type: \"string\" }, notas_riesgo: { type: \"string\" } }, required: [\"resumen_ia\", \"siguiente_accion\", \"notas_riesgo\"] }, strict: true } } }) }}",
+        "options": {}
+      },
+      "id": "78888888-eeee-4888-8888-888888888888",
+      "name": "OpenAI - Analizar Solicitud",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -900,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const ai = $node['OpenAI - Analizar Solicitud'].json;\nlet text = '';\n\nif (ai.output_text) {\n  text = ai.output_text;\n} else if (ai.output?.[0]?.content?.[0]?.text) {\n  text = ai.output[0].content[0].text;\n} else if (ai.choices?.[0]?.message?.content) {\n  text = ai.choices[0].message.content;\n}\n\nlet parsed;\ntry {\n  parsed = JSON.parse(text);\n} catch (error) {\n  parsed = {\n    resumen_ia: 'No se pudo parsear correctamente la respuesta de IA.',\n    siguiente_accion: 'Revisar la solicitud manualmente.',\n    notas_riesgo: 'Respuesta de IA no estructurada.'\n  };\n}\n\nreturn [\n  {\n    json: {\n      ...$node['Calcular Precalificación'].json,\n      resumen_ia: parsed.resumen_ia,\n      siguiente_accion: parsed.siguiente_accion,\n      notas_riesgo: parsed.notas_riesgo,\n      ai_raw_response: JSON.stringify(ai)\n    }\n  }\n];"
+      },
+      "id": "79999999-eeee-4999-8999-999999999999",
+      "name": "Parsear IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -660,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "create",
+        "name": "={{ $node[\"Parsear IA\"].json.folder_name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "FINANCING_APPLICATIONS_FOLDER_ID_HERE"
+        },
+        "options": {}
+      },
+      "id": "7aaaaaaa-eeee-4aaa-8aaa-aaaaaaaaaaaa",
+      "name": "Crear Expediente en Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -420,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Financing%20Applications",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Application ID\": $node[\"Parsear IA\"].json.application_id, \"Nombre\": $node[\"Parsear IA\"].json.nombre, \"Email\": $node[\"Parsear IA\"].json.email, \"Teléfono\": $node[\"Parsear IA\"].json.telefono, \"Ciudad\": $node[\"Parsear IA\"].json.ciudad, \"Tipo de propiedad\": $node[\"Parsear IA\"].json.tipo_propiedad, \"Valor propiedad\": $node[\"Parsear IA\"].json.valor_propiedad, \"Enganche disponible\": $node[\"Parsear IA\"].json.enganche_disponible, \"Porcentaje enganche\": $node[\"Parsear IA\"].json.porcentaje_enganche, \"Ingreso mensual\": $node[\"Parsear IA\"].json.ingreso_mensual, \"Plazo deseado años\": $node[\"Parsear IA\"].json.plazo_deseado_anios, \"Monto a financiar\": $node[\"Parsear IA\"].json.monto_financiar, \"Pago estimado mensual\": $node[\"Parsear IA\"].json.pago_estimado_mensual, \"Relación pago ingreso\": $node[\"Parsear IA\"].json.relacion_pago_ingreso, \"Resultado precalificación\": $node[\"Parsear IA\"].json.resultado_precalificacion, \"Prioridad\": $node[\"Parsear IA\"].json.prioridad, \"Resumen IA\": $node[\"Parsear IA\"].json.resumen_ia, \"Siguiente Acción\": $node[\"Parsear IA\"].json.siguiente_accion, \"Estado\": $node[\"Parsear IA\"].json.estado, \"Expediente URL\": \"https://drive.google.com/drive/folders/\" + $node[\"Crear Expediente en Google Drive\"].json.id, \"Carpeta Drive ID\": $node[\"Crear Expediente en Google Drive\"].json.id, \"Fecha de registro\": $node[\"Parsear IA\"].json.fecha_registro, \"JSON Original\": $node[\"Parsear IA\"].json.json_original, \"AI Raw Response\": $node[\"Parsear IA\"].json.ai_raw_response } } ] }) }}",
+        "options": {}
+      },
+      "id": "7bbbbbbb-eeee-4bbb-8bbb-bbbbbbbbbbbb",
+      "name": "Registrar Solicitud en Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -180,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Financing%20Follow%20Up%20Tasks",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Task ID\": $node[\"Parsear IA\"].json.task_id, \"Application ID\": $node[\"Parsear IA\"].json.application_id, \"Nombre\": $node[\"Parsear IA\"].json.nombre, \"Email\": $node[\"Parsear IA\"].json.email, \"Teléfono\": $node[\"Parsear IA\"].json.telefono, \"Prioridad\": $node[\"Parsear IA\"].json.prioridad, \"Resultado precalificación\": $node[\"Parsear IA\"].json.resultado_precalificacion, \"Siguiente Acción\": $node[\"Parsear IA\"].json.siguiente_accion, \"Estado\": \"Pendiente\", \"Fecha de creación\": new Date().toISOString().slice(0, 10), \"Fecha sugerida de contacto\": $node[\"Parsear IA\"].json.fecha_sugerida_contacto } } ] }) }}",
+        "options": {}
+      },
+      "id": "7ccccccc-eeee-4ccc-8ccc-cccccccccccc",
+      "name": "Crear Tarea de Seguimiento",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        60,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Financing%20Automation%20Logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Log ID\": \"LOG-\" + Date.now(), \"Workflow\": \"07 - Real Estate Financing Prequalification\", \"Evento\": \"Application Processed\", \"Estado\": \"Success\", \"Mensaje\": \"Solicitud de financiamiento procesada correctamente.\", \"Application ID\": $node[\"Parsear IA\"].json.application_id, \"Fecha\": new Date().toISOString().slice(0, 10), \"JSON\": JSON.stringify({ application: $node[\"Parsear IA\"].json, drive_folder_id: $node[\"Crear Expediente en Google Drive\"].json.id }) } } ] }) }}",
+        "options": {}
+      },
+      "id": "7ddddddd-eeee-4ddd-8ddd-dddddddddddd",
+      "name": "Crear Log Éxito",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: \"Solicitud de financiamiento procesada correctamente.\", application_id: $node[\"Parsear IA\"].json.application_id, nombre: $node[\"Parsear IA\"].json.nombre, monto_financiar: $node[\"Parsear IA\"].json.monto_financiar, porcentaje_enganche: $node[\"Parsear IA\"].json.porcentaje_enganche, pago_estimado_mensual: $node[\"Parsear IA\"].json.pago_estimado_mensual, relacion_pago_ingreso: $node[\"Parsear IA\"].json.relacion_pago_ingreso, resultado_precalificacion: $node[\"Parsear IA\"].json.resultado_precalificacion, prioridad: $node[\"Parsear IA\"].json.prioridad, resumen_ia: $node[\"Parsear IA\"].json.resumen_ia, siguiente_accion: $node[\"Parsear IA\"].json.siguiente_accion, expediente_url: \"https://drive.google.com/drive/folders/\" + $node[\"Crear Expediente en Google Drive\"].json.id, task_created: true, log_created: true, note: \"Esta es una precalificación automatizada demostrativa, no una aprobación crediticia final.\" }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "7eeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+      "name": "Responder Precalificación",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        540,
+        180
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Recibir Solicitud de Financiamiento": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Datos": {
+      "main": [
+        [
+          {
+            "node": "Validar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Datos": {
+      "main": [
+        [
+          {
+            "node": "¿Datos válidos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Datos válidos?": {
+      "main": [
+        [
+          {
+            "node": "Calcular Precalificación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear Log Error Validación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Log Error Validación": {
+      "main": [
+        [
+          {
+            "node": "Responder Error de Validación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular Precalificación": {
+      "main": [
+        [
+          {
+            "node": "OpenAI - Analizar Solicitud",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Analizar Solicitud": {
+      "main": [
+        [
+          {
+            "node": "Parsear IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear IA": {
+      "main": [
+        [
+          {
+            "node": "Crear Expediente en Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Expediente en Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Registrar Solicitud en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Solicitud en Airtable": {
+      "main": [
+        [
+          {
+            "node": "Crear Tarea de Seguimiento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Tarea de Seguimiento": {
+      "main": [
+        [
+          {
+            "node": "Crear Log Éxito",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Log Éxito": {
+      "main": [
+        [
+          {
+            "node": "Responder Precalificación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "versionId": "00000000-0000-0000-0000-000000000000",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
