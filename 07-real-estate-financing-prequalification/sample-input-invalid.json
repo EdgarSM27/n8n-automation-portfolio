@@ -1,0 +1,12 @@
+{
+  "nombre": "",
+  "email": "correo_mal",
+  "telefono": "123",
+  "ciudad": "",
+  "tipo_propiedad": "Casa",
+  "valor_propiedad": 0,
+  "enganche_disponible": 0,
+  "ingreso_mensual": 0,
+  "plazo_deseado_anios": 0,
+  "mensaje": ""
+}
