@@ -1,0 +1,12 @@
+{
+  "nombre": "Carlos Ramirez",
+  "email": "carlos.ramirez@example.com",
+  "telefono": "6671112233",
+  "ciudad": "Culiacan",
+  "tipo_propiedad": "Casa",
+  "valor_propiedad": 1800000,
+  "enganche_disponible": 300000,
+  "ingreso_mensual": 45000,
+  "plazo_deseado_anios": 15,
+  "mensaje": "Me interesa comprar una casa y quiero saber si puedo aplicar a financiamiento."
+}
