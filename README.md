@@ -149,6 +149,29 @@ Main tools used:
 
 Status: Completed
 
+---
+
+### [07 - Real Estate Financing Prequalification Workflow](./07-real-estate-financing-prequalification)
+
+This workflow receives a real estate financing application through a webhook, validates applicant data, calculates a basic prequalification, analyzes the case with OpenAI, creates a Google Drive folder, registers the application in Airtable, creates a follow-up task, stores automation logs and returns a structured JSON response.
+
+Main tools used:
+
+- n8n
+- OpenAI API
+- Airtable API
+- Google Drive
+- Webhook
+- HTTP Request nodes
+- JavaScript Code node
+- JSON
+- Google OAuth2
+- Financial prequalification logic
+- Follow-up task creation
+- Automation logs
+
+Status: Completed
+
 ## Repository Structure
 
 ```text
