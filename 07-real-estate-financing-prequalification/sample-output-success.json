@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "message": "Solicitud de financiamiento procesada correctamente.",
+  "application_id": "FIN-APP-1780765243138",
+  "nombre": "Carlos Ramirez",
+  "monto_financiar": 1500000,
+  "porcentaje_enganche": 16.67,
+  "pago_estimado_mensual": 18002.52,
+  "relacion_pago_ingreso": 40.01,
+  "resultado_precalificacion": "Requiere revisión",
+  "prioridad": "Media",
+  "resumen_ia": "El solicitante busca financiamiento para una casa en Culiacan con un valor de 1,800,000 MXN y un enganche disponible de 300,000 MXN.",
+  "siguiente_accion": "Revisar en detalle la capacidad de pago del solicitante y validar documentación financiera.",
+  "expediente_url": "https://drive.google.com/drive/folders/DRIVE_FOLDER_ID",
+  "task_created": true,
+  "log_created": true,
+  "note": "Esta es una precalificación automatizada demostrativa, no una aprobación crediticia final."
+}
