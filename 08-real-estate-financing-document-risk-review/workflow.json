@@ -1,0 +1,1248 @@
+{
+  "name": "08 - Real Estate Financing Document & Risk Review v3 Reports",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "real-estate-financing-risk-review",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f6790c58-b6e8-4769-b27e-e06b4dbc81df",
+      "name": "Webhook - Recibir Caso de Financiamiento",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2400,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst data =\n  input.body && Object.keys(input.body).length > 0\n    ? input.body\n    : input.query && Object.keys(input.query).length > 0\n      ? input.query\n      : input;\n\nfunction clean(value, fallback = \"\") {\n  if (value === undefined || value === null) return fallback;\n  return String(value).trim();\n}\n\nfunction toNumber(value) {\n  const number = Number(value);\n  return Number.isFinite(number) ? number : 0;\n}\n\nconst now = Date.now();\n\nconst applicationId = clean(data.application_id || data.applicationId, \"FIN-APP-\" + now);\nconst reviewId = \"FIN-REV-\" + now;\n\nconst documentos = data.documentos || {};\n\nreturn [\n  {\n    json: {\n      review_id: reviewId,\n      application_id: applicationId,\n      nombre: clean(data.nombre || data.name),\n      email: clean(data.email || data.correo).toLowerCase(),\n      telefono: clean(data.telefono || data.phone || data.celular),\n      ciudad: clean(data.ciudad || data.city),\n      tipo_propiedad: clean(data.tipo_propiedad || data.property_type, \"Otro\"),\n      valor_propiedad: toNumber(data.valor_propiedad || data.property_value),\n      enganche_disponible: toNumber(data.enganche_disponible || data.down_payment),\n      ingreso_mensual: toNumber(data.ingreso_mensual || data.monthly_income),\n      plazo_deseado_anios: toNumber(data.plazo_deseado_anios || data.plazo_deseado_años || data.term_years),\n      antiguedad_laboral_anios: toNumber(data.antiguedad_laboral_anios || data.antiguedad_laboral_años || data.work_seniority_years),\n      score_crediticio: toNumber(data.score_crediticio || data.credit_score),\n      documentos: {\n        identificacion_oficial: Boolean(documentos.identificacion_oficial),\n        comprobante_domicilio: Boolean(documentos.comprobante_domicilio),\n        comprobante_ingresos: Boolean(documentos.comprobante_ingresos),\n        estados_cuenta: Boolean(documentos.estados_cuenta),\n        rfc: Boolean(documentos.rfc),\n        curp: Boolean(documentos.curp),\n        documentos_propiedad: Boolean(documentos.documentos_propiedad)\n      },\n      mensaje: clean(data.mensaje || data.message),\n      fecha_revision: new Date().toISOString().slice(0, 10),\n      folder_name: `FINANCING_REVIEW_${reviewId}_${clean(data.nombre || data.name, \"Sin nombre\")}`,\n      json_original: JSON.stringify(data)\n    }\n  }\n];"
+      },
+      "id": "63bdd590-0dd1-4e80-b9f3-9080da4984e6",
+      "name": "Normalizar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2160,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst errores = [];\n\nif (!item.nombre || item.nombre.length < 2) {\n  errores.push(\"Nombre inválido o vacío\");\n}\n\nif (!item.email || !item.email.includes(\"@\")) {\n  errores.push(\"Email inválido o vacío\");\n}\n\nif (!item.telefono || item.telefono.length < 7) {\n  errores.push(\"Teléfono inválido o vacío\");\n}\n\nif (!item.ciudad || item.ciudad.length < 2) {\n  errores.push(\"Ciudad inválida o vacía\");\n}\n\nif (!item.valor_propiedad || item.valor_propiedad <= 0) {\n  errores.push(\"Valor de propiedad inválido\");\n}\n\nif (!item.ingreso_mensual || item.ingreso_mensual <= 0) {\n  errores.push(\"Ingreso mensual inválido\");\n}\n\nif (!item.plazo_deseado_anios || item.plazo_deseado_anios <= 0) {\n  errores.push(\"Plazo deseado inválido\");\n}\n\nif (item.score_crediticio && (item.score_crediticio < 300 || item.score_crediticio > 850)) {\n  errores.push(\"Score crediticio fuera de rango\");\n}\n\nif (!item.mensaje || item.mensaje.length < 5) {\n  errores.push(\"Mensaje inválido o vacío\");\n}\n\nreturn [\n  {\n    json: {\n      ...item,\n      valido: errores.length === 0,\n      errores_validacion: errores\n    }\n  }\n];"
+      },
+      "id": "ed22d409-fd8b-485d-b2a4-28bca77412f7",
+      "name": "Validar Datos del Solicitante",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1920,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "valid-data",
+              "leftValue": "={{ $json.valido }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7317bd56-aa19-4e5a-92e6-c5d4ddf4ba09",
+      "name": "¿Datos válidos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1680,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Risk%20Automation%20Logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Log ID\": \"RISK-LOG-\" + Date.now(), \"Workflow\": \"08 - Real Estate Financing Document & Risk Review\", \"Evento\": \"Validation Error\", \"Estado\": \"Error\", \"Mensaje\": \"El caso tiene datos incompletos o inválidos.\", \"Review ID\": $node[\"Validar Datos del Solicitante\"].json.review_id, \"Application ID\": $node[\"Validar Datos del Solicitante\"].json.application_id, \"Fecha\": new Date().toISOString().slice(0, 10), \"JSON\": JSON.stringify({ errores: $node[\"Validar Datos del Solicitante\"].json.errores_validacion, data: $node[\"Validar Datos del Solicitante\"].json }) } } ] }) }}",
+        "options": {}
+      },
+      "id": "6b8db676-f3dd-4dfd-a0fe-2272825e822e",
+      "name": "Crear Log Error Validación",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1440,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: false, message: \"El caso tiene datos incompletos o inválidos.\", errores: $node[\"Validar Datos del Solicitante\"].json.errores_validacion, log_created: true }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "da1ae262-0df6-4d63-a2da-59e5f7af8205",
+      "name": "Responder Error de Validación",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1200,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Financing%20Case%20Reviews",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "maxRecords",
+              "value": "1"
+            },
+            {
+              "name": "filterByFormula",
+              "value": "={{ \"{Application ID} = '\" + $node[\"Validar Datos del Solicitante\"].json.application_id + \"'\" }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9e595e0a-4527-44b1-a8cc-6cb2367b7685",
+      "name": "Buscar Revisión en Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1440,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "review-exists",
+              "leftValue": "={{ Array.isArray($json.records) && $json.records.length > 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b1c69af4-5bda-4cf2-86d0-aaa3b9c3deab",
+      "name": "¿Existe revisión?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1200,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $node[\"Validar Datos del Solicitante\"].json;\nconst search = $node[\"Buscar Revisión en Airtable\"].json;\n\nreturn [\n  {\n    json: {\n      ...base,\n      existing_review: true,\n      existing_airtable_record_id: search.records?.[0]?.id || null\n    }\n  }\n];"
+      },
+      "id": "d93ce6b3-bf08-4440-8042-276b1dbb0c8e",
+      "name": "Marcar Revisión Existente",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $node[\"Validar Datos del Solicitante\"].json;\n\nreturn [\n  {\n    json: {\n      ...base,\n      existing_review: false,\n      existing_airtable_record_id: null\n    }\n  }\n];"
+      },
+      "id": "53552284-1a07-4d88-9388-b7b11e76eb89",
+      "name": "Marcar Nueva Revisión",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "create",
+        "name": "={{ $json.folder_name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "RISK_REVIEW_FOLDER_ID_HERE"
+        },
+        "options": {}
+      },
+      "id": "003724d6-5c87-485b-9945-a1c51b633780",
+      "name": "Crear Carpeta Principal Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -720,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "create",
+        "name": "01 - Identificacion",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Crear Carpeta Principal Google Drive\"].json.id }}"
+        },
+        "options": {}
+      },
+      "id": "31402974-a908-4467-8bd4-53b8cc5d9493",
+      "name": "Crear Subcarpeta 01 - Identificacion",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -480,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "create",
+        "name": "02 - Ingresos",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Crear Carpeta Principal Google Drive\"].json.id }}"
+        },
+        "options": {}
+      },
+      "id": "0d6ab7ca-7080-4c32-95cf-e62450405218",
+      "name": "Crear Subcarpeta 02 - Ingresos",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -240,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "create",
+        "name": "03 - Estados de Cuenta",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Crear Carpeta Principal Google Drive\"].json.id }}"
+        },
+        "options": {}
+      },
+      "id": "dfb36774-bb83-4c02-b846-fe58cba5d131",
+      "name": "Crear Subcarpeta 03 - Estados de Cuenta",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        0,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "create",
+        "name": "04 - Documentos de Propiedad",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Crear Carpeta Principal Google Drive\"].json.id }}"
+        },
+        "options": {}
+      },
+      "id": "85b6ba3d-4785-40e8-8ad8-abe4c7522a25",
+      "name": "Crear Subcarpeta 04 - Documentos de Propiedad",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        240,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "operation": "create",
+        "name": "05 - Revision Interna",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $node[\"Crear Carpeta Principal Google Drive\"].json.id }}"
+        },
+        "options": {}
+      },
+      "id": "a6f47bc9-4dcd-41b3-a6ec-d183badf015f",
+      "name": "Crear Subcarpeta 05 - Revision Interna",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        480,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $node[\"Validar Datos del Solicitante\"].json;\nconst docs = base.documentos || {};\n\nconst labels = {\n  identificacion_oficial: \"Identificación oficial\",\n  comprobante_domicilio: \"Comprobante de domicilio\",\n  comprobante_ingresos: \"Comprobante de ingresos\",\n  estados_cuenta: \"Estados de cuenta\",\n  rfc: \"RFC\",\n  curp: \"CURP\",\n  documentos_propiedad: \"Documentos de propiedad\"\n};\n\nconst checklist = {};\nlet completos = 0;\nconst faltantes = [];\n\nfor (const [key, label] of Object.entries(labels)) {\n  const recibido = Boolean(docs[key]);\n  if (recibido) {\n    completos += 1;\n  } else {\n    faltantes.push(label);\n  }\n\n  checklist[key] = {\n    checklist_id: `CHK-${base.review_id}-${key}`.slice(0, 80),\n    documento: label,\n    requerido: true,\n    recibido,\n    estado: recibido ? \"Recibido\" : \"Pendiente\",\n    comentario: recibido ? \"Documento marcado como recibido.\" : \"Documento pendiente de recibir.\"\n  };\n}\n\nconst total = Object.keys(labels).length;\nconst porcentaje = Number(((completos / total) * 100).toFixed(2));\n\nreturn [\n  {\n    json: {\n      ...base,\n      expediente_url: \"https://drive.google.com/drive/folders/\" + $node[\"Crear Carpeta Principal Google Drive\"].json.id,\n      carpeta_drive_id: $node[\"Crear Carpeta Principal Google Drive\"].json.id,\n      documentos_completos: completos,\n      documentos_faltantes: faltantes,\n      documentos_faltantes_texto: faltantes.length ? faltantes.join(\", \") : \"Sin documentos faltantes\",\n      porcentaje_documentos_completos: porcentaje,\n      document_checklist: checklist\n    }\n  }\n];"
+      },
+      "id": "961d010b-2a90-4507-a529-f63f7c6fa890",
+      "name": "Evaluar Checklist Documental",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Document%20Checklist",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Checklist ID\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.identificacion_oficial.checklist_id, \"Review ID\": $node[\"Evaluar Checklist Documental\"].json.review_id, \"Application ID\": $node[\"Evaluar Checklist Documental\"].json.application_id, \"Nombre\": $node[\"Evaluar Checklist Documental\"].json.nombre, \"Documento\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.identificacion_oficial.documento, \"Requerido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.identificacion_oficial.requerido, \"Recibido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.identificacion_oficial.recibido, \"Estado\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.identificacion_oficial.estado, \"Comentario\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.identificacion_oficial.comentario, \"Fecha de revisión\": new Date().toISOString().slice(0, 10) } } ] }) }}",
+        "options": {}
+      },
+      "id": "2a6c71cf-974b-49eb-ab60-ce3a7af813ec",
+      "name": "Registrar Documento Identificacion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Document%20Checklist",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Checklist ID\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_domicilio.checklist_id, \"Review ID\": $node[\"Evaluar Checklist Documental\"].json.review_id, \"Application ID\": $node[\"Evaluar Checklist Documental\"].json.application_id, \"Nombre\": $node[\"Evaluar Checklist Documental\"].json.nombre, \"Documento\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_domicilio.documento, \"Requerido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_domicilio.requerido, \"Recibido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_domicilio.recibido, \"Estado\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_domicilio.estado, \"Comentario\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_domicilio.comentario, \"Fecha de revisión\": new Date().toISOString().slice(0, 10) } } ] }) }}",
+        "options": {}
+      },
+      "id": "84375155-6b79-4bd7-93ad-676cd4a0a5fd",
+      "name": "Registrar Documento Comprobante Domicilio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Document%20Checklist",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Checklist ID\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_ingresos.checklist_id, \"Review ID\": $node[\"Evaluar Checklist Documental\"].json.review_id, \"Application ID\": $node[\"Evaluar Checklist Documental\"].json.application_id, \"Nombre\": $node[\"Evaluar Checklist Documental\"].json.nombre, \"Documento\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_ingresos.documento, \"Requerido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_ingresos.requerido, \"Recibido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_ingresos.recibido, \"Estado\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_ingresos.estado, \"Comentario\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.comprobante_ingresos.comentario, \"Fecha de revisión\": new Date().toISOString().slice(0, 10) } } ] }) }}",
+        "options": {}
+      },
+      "id": "2c025a9b-d1c6-4574-b564-cae9b6b97108",
+      "name": "Registrar Documento Comprobante Ingresos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1440,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Document%20Checklist",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Checklist ID\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.estados_cuenta.checklist_id, \"Review ID\": $node[\"Evaluar Checklist Documental\"].json.review_id, \"Application ID\": $node[\"Evaluar Checklist Documental\"].json.application_id, \"Nombre\": $node[\"Evaluar Checklist Documental\"].json.nombre, \"Documento\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.estados_cuenta.documento, \"Requerido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.estados_cuenta.requerido, \"Recibido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.estados_cuenta.recibido, \"Estado\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.estados_cuenta.estado, \"Comentario\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.estados_cuenta.comentario, \"Fecha de revisión\": new Date().toISOString().slice(0, 10) } } ] }) }}",
+        "options": {}
+      },
+      "id": "a8cc2102-fe71-42a9-886b-8680f1e9182a",
+      "name": "Registrar Documento Estados de Cuenta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Document%20Checklist",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Checklist ID\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.rfc.checklist_id, \"Review ID\": $node[\"Evaluar Checklist Documental\"].json.review_id, \"Application ID\": $node[\"Evaluar Checklist Documental\"].json.application_id, \"Nombre\": $node[\"Evaluar Checklist Documental\"].json.nombre, \"Documento\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.rfc.documento, \"Requerido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.rfc.requerido, \"Recibido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.rfc.recibido, \"Estado\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.rfc.estado, \"Comentario\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.rfc.comentario, \"Fecha de revisión\": new Date().toISOString().slice(0, 10) } } ] }) }}",
+        "options": {}
+      },
+      "id": "dcf836e1-d487-46ed-bac6-2a2a603fd179",
+      "name": "Registrar Documento RFC",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Document%20Checklist",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Checklist ID\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.curp.checklist_id, \"Review ID\": $node[\"Evaluar Checklist Documental\"].json.review_id, \"Application ID\": $node[\"Evaluar Checklist Documental\"].json.application_id, \"Nombre\": $node[\"Evaluar Checklist Documental\"].json.nombre, \"Documento\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.curp.documento, \"Requerido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.curp.requerido, \"Recibido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.curp.recibido, \"Estado\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.curp.estado, \"Comentario\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.curp.comentario, \"Fecha de revisión\": new Date().toISOString().slice(0, 10) } } ] }) }}",
+        "options": {}
+      },
+      "id": "d42b23e8-c42b-455c-a38e-7f5d03f3b877",
+      "name": "Registrar Documento CURP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Document%20Checklist",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: { \"Checklist ID\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.documentos_propiedad.checklist_id, \"Review ID\": $node[\"Evaluar Checklist Documental\"].json.review_id, \"Application ID\": $node[\"Evaluar Checklist Documental\"].json.application_id, \"Nombre\": $node[\"Evaluar Checklist Documental\"].json.nombre, \"Documento\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.documentos_propiedad.documento, \"Requerido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.documentos_propiedad.requerido, \"Recibido\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.documentos_propiedad.recibido, \"Estado\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.documentos_propiedad.estado, \"Comentario\": $node[\"Evaluar Checklist Documental\"].json.document_checklist.documentos_propiedad.comentario, \"Fecha de revisión\": new Date().toISOString().slice(0, 10) } } ] }) }}",
+        "options": {}
+      },
+      "id": "4e1c3930-17a0-4a1b-8072-f3c40927aaef",
+      "name": "Registrar Documento Propiedad",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2400,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $node[\"Evaluar Checklist Documental\"].json;\n\nconst valor = Number(item.valor_propiedad || 0);\nconst enganche = Number(item.enganche_disponible || 0);\nconst ingreso = Number(item.ingreso_mensual || 0);\nconst plazo = Number(item.plazo_deseado_anios || 0);\nconst scoreCrediticio = Number(item.score_crediticio || 0);\nconst antiguedad = Number(item.antiguedad_laboral_anios || 0);\n\nconst montoFinanciar = Math.max(valor - enganche, 0);\nconst porcentajeEnganche = valor > 0 ? Number(((enganche / valor) * 100).toFixed(2)) : 0;\n\nconst annualRate = 0.12;\nconst monthlyRate = annualRate / 12;\nconst months = plazo * 12;\n\nlet pagoMensual = 0;\nif (montoFinanciar > 0 && months > 0) {\n  pagoMensual = montoFinanciar * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months));\n}\npagoMensual = Number(pagoMensual.toFixed(2));\n\nconst relacionPagoIngreso = ingreso > 0 ? Number(((pagoMensual / ingreso) * 100).toFixed(2)) : 0;\n\nlet scoreInterno = 50;\n\nif (porcentajeEnganche >= 20) scoreInterno += 15;\nelse if (porcentajeEnganche >= 10) scoreInterno += 7;\nelse scoreInterno -= 10;\n\nif (relacionPagoIngreso <= 35) scoreInterno += 20;\nelse if (relacionPagoIngreso <= 45) scoreInterno += 10;\nelse scoreInterno -= 15;\n\nif (scoreCrediticio >= 720) scoreInterno += 15;\nelse if (scoreCrediticio >= 650) scoreInterno += 8;\nelse if (scoreCrediticio > 0) scoreInterno -= 10;\n\nif (antiguedad >= 2) scoreInterno += 5;\nelse scoreInterno -= 5;\n\nscoreInterno += Math.round(item.porcentaje_documentos_completos * 0.15);\n\nscoreInterno = Math.max(0, Math.min(100, scoreInterno));\n\nlet nivelRiesgo = \"Medio\";\nlet resultadoRevision = \"Revisión manual requerida\";\nlet prioridad = \"Media\";\nlet tipoTarea = \"Revisión manual\";\nlet diasSeguimiento = 2;\n\nif (scoreInterno >= 80 && item.porcentaje_documentos_completos >= 85 && relacionPagoIngreso <= 35) {\n  nivelRiesgo = \"Bajo\";\n  resultadoRevision = \"Preaprobación recomendada\";\n  prioridad = \"Media\";\n  tipoTarea = \"Preaprobación\";\n  diasSeguimiento = 2;\n} else if (scoreInterno >= 60 && relacionPagoIngreso <= 50) {\n  nivelRiesgo = \"Medio\";\n  resultadoRevision = \"Revisión manual requerida\";\n  prioridad = item.documentos_faltantes.length > 0 ? \"Alta\" : \"Media\";\n  tipoTarea = \"Revisión manual\";\n  diasSeguimiento = 1;\n} else {\n  nivelRiesgo = \"Alto\";\n  resultadoRevision = \"Análisis especial requerido\";\n  prioridad = \"Alta\";\n  tipoTarea = \"Análisis especial\";\n  diasSeguimiento = 0;\n}\n\nconst fecha = new Date();\nfecha.setDate(fecha.getDate() + diasSeguimiento);\n\nreturn [\n  {\n    json: {\n      ...item,\n      monto_financiar: montoFinanciar,\n      porcentaje_enganche: porcentajeEnganche,\n      pago_estimado_mensual: pagoMensual,\n      relacion_pago_ingreso: relacionPagoIngreso,\n      score_interno: scoreInterno,\n      nivel_riesgo_calculado: nivelRiesgo,\n      resultado_revision_calculado: resultadoRevision,\n      prioridad_calculada: prioridad,\n      tipo_tarea: tipoTarea,\n      fecha_sugerida_seguimiento: fecha.toISOString().slice(0, 10)\n    }\n  }\n];"
+      },
+      "id": "983a2bc5-d32b-4b30-b820-da6462c340eb",
+      "name": "Calcular Score Financiero",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/responses",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer OPENAI_API_KEY_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"gpt-4.1-mini\",\n  input: [\n    {\n      role: \"system\",\n      content: \"You are an assistant for a real estate financing company. Analyze financing review cases. Return only valid JSON matching the schema. Do not include markdown.\"\n    },\n    {\n      role: \"user\",\n      content: `Analyze this financing review case.\\n\\nApplicant: ${$node[\"Calcular Score Financiero\"].json.nombre}\\nCity: ${$node[\"Calcular Score Financiero\"].json.ciudad}\\nProperty type: ${$node[\"Calcular Score Financiero\"].json.tipo_propiedad}\\nProperty value: ${$node[\"Calcular Score Financiero\"].json.valor_propiedad}\\nDown payment: ${$node[\"Calcular Score Financiero\"].json.enganche_disponible}\\nMonthly income: ${$node[\"Calcular Score Financiero\"].json.ingreso_mensual}\\nTerm years: ${$node[\"Calcular Score Financiero\"].json.plazo_deseado_anios}\\nWork seniority years: ${$node[\"Calcular Score Financiero\"].json.antiguedad_laboral_anios}\\nCredit score: ${$node[\"Calcular Score Financiero\"].json.score_crediticio}\\nEstimated monthly payment: ${$node[\"Calcular Score Financiero\"].json.pago_estimado_mensual}\\nPayment to income ratio: ${$node[\"Calcular Score Financiero\"].json.relacion_pago_ingreso}%\\nCompleted documents: ${$node[\"Calcular Score Financiero\"].json.documentos_completos}/7\\nMissing documents: ${$node[\"Calcular Score Financiero\"].json.documentos_faltantes_texto}\\nInternal score: ${$node[\"Calcular Score Financiero\"].json.score_interno}\\nCalculated risk: ${$node[\"Calcular Score Financiero\"].json.nivel_riesgo_calculado}\\nMessage: ${$node[\"Calcular Score Financiero\"].json.mensaje}\\n\\nReturn a concise operational review in Spanish.`\n    }\n  ],\n  text: {\n    format: {\n      type: \"json_schema\",\n      name: \"risk_review_analysis\",\n      schema: {\n        type: \"object\",\n        additionalProperties: false,\n        properties: {\n          nivel_riesgo: { type: \"string\", enum: [\"Bajo\", \"Medio\", \"Alto\"] },\n          resultado_revision: { type: \"string\", enum: [\"Preaprobación recomendada\", \"Revisión manual requerida\", \"Análisis especial requerido\", \"No viable\"] },\n          prioridad: { type: \"string\", enum: [\"Alta\", \"Media\", \"Baja\"] },\n          resumen_ia: { type: \"string\" },\n          siguiente_accion: { type: \"string\" },\n          comentarios_riesgo: { type: \"string\" }\n        },\n        required: [\"nivel_riesgo\", \"resultado_revision\", \"prioridad\", \"resumen_ia\", \"siguiente_accion\", \"comentarios_riesgo\"]\n      },\n      strict: true\n    }\n  }\n}) }}",
+        "options": {}
+      },
+      "id": "e0617b1c-da5b-4fd4-a1c3-253bf55d61f7",
+      "name": "OpenAI - Analizar Riesgo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2880,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const calc = $node[\"Calcular Score Financiero\"].json;\nconst ai = $node[\"OpenAI - Analizar Riesgo\"].json;\n\nlet text = \"\";\n\nif (ai.output_text) {\n  text = ai.output_text;\n} else if (ai.output?.[0]?.content?.[0]?.text) {\n  text = ai.output[0].content[0].text;\n} else if (ai.choices?.[0]?.message?.content) {\n  text = ai.choices[0].message.content;\n}\n\nlet parsed;\ntry {\n  parsed = JSON.parse(text);\n} catch (error) {\n  parsed = {\n    nivel_riesgo: calc.nivel_riesgo_calculado,\n    resultado_revision: calc.resultado_revision_calculado,\n    prioridad: calc.prioridad_calculada,\n    resumen_ia: \"No se pudo parsear correctamente la respuesta de IA. Se usó la evaluación calculada por reglas.\",\n    siguiente_accion: \"Revisar manualmente el caso y solicitar documentos faltantes.\",\n    comentarios_riesgo: \"Respuesta de IA no parseable.\"\n  };\n}\n\nreturn [\n  {\n    json: {\n      ...calc,\n      nivel_riesgo: parsed.nivel_riesgo || calc.nivel_riesgo_calculado,\n      resultado_revision: parsed.resultado_revision || calc.resultado_revision_calculado,\n      prioridad: parsed.prioridad || calc.prioridad_calculada,\n      resumen_ia: parsed.resumen_ia || \"\",\n      siguiente_accion: parsed.siguiente_accion || \"\",\n      comentarios_riesgo: parsed.comentarios_riesgo || \"\",\n      task_id: \"RISK-TASK-\" + Date.now(),\n      ai_raw_response: JSON.stringify(ai)\n    }\n  }\n];"
+      },
+      "id": "f3ada6ee-f50b-4893-bdde-862b2d844731",
+      "name": "Parsear IA y Preparar Resultado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $node[\"Parsear IA y Preparar Resultado\"].json;\n\nconst summary = [\n  \"RESUMEN INTERNO DE REVISIÓN DE FINANCIAMIENTO\",\n  \"\",\n  `Review ID: ${item.review_id}`,\n  `Application ID: ${item.application_id}`,\n  `Nombre: ${item.nombre}`,\n  `Email: ${item.email}`,\n  `Teléfono: ${item.telefono}`,\n  `Ciudad: ${item.ciudad}`,\n  `Tipo de propiedad: ${item.tipo_propiedad}`,\n  \"\",\n  \"DATOS FINANCIEROS\",\n  `Valor propiedad: ${item.valor_propiedad}`,\n  `Enganche disponible: ${item.enganche_disponible}`,\n  `Monto a financiar: ${item.monto_financiar}`,\n  `Porcentaje enganche: ${item.porcentaje_enganche}%`,\n  `Ingreso mensual: ${item.ingreso_mensual}`,\n  `Pago estimado mensual: ${item.pago_estimado_mensual}`,\n  `Relación pago-ingreso: ${item.relacion_pago_ingreso}%`,\n  `Score crediticio: ${item.score_crediticio}`,\n  `Antigüedad laboral años: ${item.antiguedad_laboral_anios}`,\n  \"\",\n  \"DOCUMENTOS\",\n  `Documentos completos: ${item.documentos_completos}/7`,\n  `Porcentaje documentos completos: ${item.porcentaje_documentos_completos}%`,\n  `Documentos faltantes: ${item.documentos_faltantes_texto}`,\n  \"\",\n  \"RESULTADO\",\n  `Score interno: ${item.score_interno}`,\n  `Nivel de riesgo: ${item.nivel_riesgo}`,\n  `Resultado revisión: ${item.resultado_revision}`,\n  `Prioridad: ${item.prioridad}`,\n  \"\",\n  \"ANÁLISIS IA\",\n  item.resumen_ia,\n  \"\",\n  \"SIGUIENTE ACCIÓN\",\n  item.siguiente_accion,\n  \"\",\n  \"COMENTARIOS DE RIESGO\",\n  item.comentarios_riesgo,\n  \"\",\n  \"NOTA: Esta revisión automatizada es demostrativa y no representa una aprobación crediticia final.\"\n].join(\"\\n\");\n\nreturn [\n  {\n    json: {\n      ...item,\n      resumen_interno: summary,\n      internal_summary_created: true\n    }\n  }\n];"
+      },
+      "id": "a5d8b9d6-f459-46a9-8a6e-978466ccb71e",
+      "name": "Generar Resumen Interno",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3360,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Financing%20Case%20Reviews",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: {\n  \"Review ID\": $node[\"Generar Resumen Interno\"].json.review_id,\n  \"Application ID\": $node[\"Generar Resumen Interno\"].json.application_id,\n  \"Nombre\": $node[\"Generar Resumen Interno\"].json.nombre,\n  \"Email\": $node[\"Generar Resumen Interno\"].json.email,\n  \"Teléfono\": $node[\"Generar Resumen Interno\"].json.telefono,\n  \"Ciudad\": $node[\"Generar Resumen Interno\"].json.ciudad,\n  \"Tipo de propiedad\": $node[\"Generar Resumen Interno\"].json.tipo_propiedad,\n  \"Valor propiedad\": $node[\"Generar Resumen Interno\"].json.valor_propiedad,\n  \"Enganche disponible\": $node[\"Generar Resumen Interno\"].json.enganche_disponible,\n  \"Monto a financiar\": $node[\"Generar Resumen Interno\"].json.monto_financiar,\n  \"Porcentaje enganche\": $node[\"Generar Resumen Interno\"].json.porcentaje_enganche,\n  \"Ingreso mensual\": $node[\"Generar Resumen Interno\"].json.ingreso_mensual,\n  \"Pago estimado mensual\": $node[\"Generar Resumen Interno\"].json.pago_estimado_mensual,\n  \"Relación pago ingreso\": $node[\"Generar Resumen Interno\"].json.relacion_pago_ingreso,\n  \"Antigüedad laboral años\": $node[\"Generar Resumen Interno\"].json.antiguedad_laboral_anios,\n  \"Score crediticio\": $node[\"Generar Resumen Interno\"].json.score_crediticio,\n  \"Documentos completos\": $node[\"Generar Resumen Interno\"].json.documentos_completos,\n  \"Documentos faltantes\": $node[\"Generar Resumen Interno\"].json.documentos_faltantes_texto,\n  \"Porcentaje documentos completos\": $node[\"Generar Resumen Interno\"].json.porcentaje_documentos_completos,\n  \"Score interno\": $node[\"Generar Resumen Interno\"].json.score_interno,\n  \"Nivel de riesgo\": $node[\"Generar Resumen Interno\"].json.nivel_riesgo,\n  \"Resultado revisión\": $node[\"Generar Resumen Interno\"].json.resultado_revision,\n  \"Prioridad\": $node[\"Generar Resumen Interno\"].json.prioridad,\n  \"Resumen IA\": $node[\"Generar Resumen Interno\"].json.resumen_ia,\n  \"Siguiente Acción\": $node[\"Generar Resumen Interno\"].json.siguiente_accion,\n  \"Estado\": $node[\"Generar Resumen Interno\"].json.documentos_faltantes.length > 0 ? \"Pendiente documentos\" : \"En revisión\",\n  \"Expediente URL\": $node[\"Generar Resumen Interno\"].json.expediente_url,\n  \"Carpeta Drive ID\": $node[\"Generar Resumen Interno\"].json.carpeta_drive_id,\n  \"Fecha de revisión\": $node[\"Generar Resumen Interno\"].json.fecha_revision,\n  \"JSON Original\": $node[\"Generar Resumen Interno\"].json.json_original,\n  \"Reportes generados\": $node[\"Consolidar Reportes Guardados\"].json.report_files_count,\n  \"Reportes URL\": $node[\"Consolidar Reportes Guardados\"].json.report_files_urls_text,\n  \"AI Raw Response\": $node[\"Generar Resumen Interno\"].json.ai_raw_response\n} } ] }) }}",
+        "options": {}
+      },
+      "id": "9b6d7dca-e080-4f67-a5b2-e3d30a252916",
+      "name": "Registrar Revisión de Caso",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4320,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Risk%20Review%20Tasks",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: {\n  \"Task ID\": $node[\"Generar Resumen Interno\"].json.task_id,\n  \"Review ID\": $node[\"Generar Resumen Interno\"].json.review_id,\n  \"Application ID\": $node[\"Generar Resumen Interno\"].json.application_id,\n  \"Nombre\": $node[\"Generar Resumen Interno\"].json.nombre,\n  \"Tipo de tarea\": $node[\"Generar Resumen Interno\"].json.tipo_tarea,\n  \"Prioridad\": $node[\"Generar Resumen Interno\"].json.prioridad,\n  \"Nivel de riesgo\": $node[\"Generar Resumen Interno\"].json.nivel_riesgo,\n  \"Resultado revisión\": $node[\"Generar Resumen Interno\"].json.resultado_revision,\n  \"Siguiente Acción\": $node[\"Generar Resumen Interno\"].json.siguiente_accion,\n  \"Estado\": \"Pendiente\",\n  \"Fecha de creación\": new Date().toISOString().slice(0, 10),\n  \"Fecha sugerida de seguimiento\": $node[\"Generar Resumen Interno\"].json.fecha_sugerida_seguimiento\n} } ] }) }}",
+        "options": {}
+      },
+      "id": "2ffb7826-7966-4cd2-99ae-d242f84fb94c",
+      "name": "Crear Tarea de Revisión de Riesgo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4560,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/AIRTABLE_BASE_ID_HERE/Risk%20Automation%20Logs",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer AIRTABLE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: [ { fields: {\n  \"Log ID\": \"RISK-LOG-\" + Date.now(),\n  \"Workflow\": \"08 - Real Estate Financing Document & Risk Review\",\n  \"Evento\": \"Risk Review Processed\",\n  \"Estado\": \"Success\",\n  \"Mensaje\": \"Caso revisado correctamente. Se creó expediente, checklist documental, reportes Word/Excel, revisión de riesgo y tarea de seguimiento.\",\n  \"Review ID\": $node[\"Generar Resumen Interno\"].json.review_id,\n  \"Application ID\": $node[\"Generar Resumen Interno\"].json.application_id,\n  \"Fecha\": new Date().toISOString().slice(0, 10),\n  \"JSON\": JSON.stringify({\n    review: $node[\"Generar Resumen Interno\"].json,\n    report_files: $node[\"Consolidar Reportes Guardados\"].json.report_files,\n    report_files_count: $node[\"Consolidar Reportes Guardados\"].json.report_files_count,\n    airtable_review_response: $node[\"Registrar Revisión de Caso\"].json,\n    task_response: $node[\"Crear Tarea de Revisión de Riesgo\"].json\n  })\n} } ] }) }}",
+        "options": {}
+      },
+      "id": "5ed0defa-72a8-445a-9f6e-c5bd845dbc13",
+      "name": "Crear Log Éxito",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4800,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  message: \"Caso de financiamiento revisado correctamente.\",\n  review_id: $node[\"Generar Resumen Interno\"].json.review_id,\n  application_id: $node[\"Generar Resumen Interno\"].json.application_id,\n  nombre: $node[\"Generar Resumen Interno\"].json.nombre,\n  monto_financiar: $node[\"Generar Resumen Interno\"].json.monto_financiar,\n  porcentaje_enganche: $node[\"Generar Resumen Interno\"].json.porcentaje_enganche,\n  pago_estimado_mensual: $node[\"Generar Resumen Interno\"].json.pago_estimado_mensual,\n  relacion_pago_ingreso: $node[\"Generar Resumen Interno\"].json.relacion_pago_ingreso,\n  documentos_completos: $node[\"Generar Resumen Interno\"].json.documentos_completos,\n  documentos_faltantes: $node[\"Generar Resumen Interno\"].json.documentos_faltantes,\n  porcentaje_documentos_completos: $node[\"Generar Resumen Interno\"].json.porcentaje_documentos_completos,\n  score_interno: $node[\"Generar Resumen Interno\"].json.score_interno,\n  nivel_riesgo: $node[\"Generar Resumen Interno\"].json.nivel_riesgo,\n  resultado_revision: $node[\"Generar Resumen Interno\"].json.resultado_revision,\n  prioridad: $node[\"Generar Resumen Interno\"].json.prioridad,\n  siguiente_accion: $node[\"Generar Resumen Interno\"].json.siguiente_accion,\n  expediente_url: $node[\"Generar Resumen Interno\"].json.expediente_url,\n  checklist_created: true,\n  report_files_created: true,\n  report_files_count: $node[\"Consolidar Reportes Guardados\"].json.report_files_count,\n  word_reports_count: $node[\"Consolidar Reportes Guardados\"].json.word_reports_count,\n  excel_reports_count: $node[\"Consolidar Reportes Guardados\"].json.excel_reports_count,\n  report_files: $node[\"Consolidar Reportes Guardados\"].json.report_files,\n  internal_summary_created: true,\n  task_created: true,\n  log_created: true,\n  note: \"Esta revisión automatizada es demostrativa y no representa una aprobación crediticia final. Los reportes .doc son compatibles con Word y los .csv son compatibles con Excel.\"\n}) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "06bca18c-7368-442d-b233-e37fb3416b39",
+      "name": "Responder Resultado Final",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        5040,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $node[\"Generar Resumen Interno\"].json;\n\nfunction esc(value) {\n  return String(value ?? \"\")\n    .replace(/&/g, \"&amp;\")\n    .replace(/</g, \"&lt;\")\n    .replace(/>/g, \"&gt;\")\n    .replace(/\"/g, \"&quot;\");\n}\n\nfunction csvEscape(value) {\n  const text = String(value ?? \"\");\n  if (text.includes(\",\") || text.includes(\"\\n\") || text.includes('\"')) {\n    return '\"' + text.replace(/\"/g, '\"\"') + '\"';\n  }\n  return text;\n}\n\nfunction csvFromRows(rows) {\n  return \"\\ufeff\" + rows.map(row => row.map(csvEscape).join(\",\")).join(\"\\n\");\n}\n\nfunction wordHtml(title, sections) {\n  const body = sections.map(section => {\n    const rows = section.rows.map(([field, value]) =>\n      `<tr><td><strong>${esc(field)}</strong></td><td>${esc(value)}</td></tr>`\n    ).join(\"\");\n\n    return `\n      <h2>${esc(section.title)}</h2>\n      <table border=\"1\" cellspacing=\"0\" cellpadding=\"6\" style=\"border-collapse:collapse;width:100%;font-family:Arial;font-size:11pt;\">\n        ${rows}\n      </table>\n    `;\n  }).join(\"<br>\");\n\n  return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<title>${esc(title)}</title>\n</head>\n<body style=\"font-family:Arial, sans-serif; font-size:11pt;\">\n<h1>${esc(title)}</h1>\n<p><strong>Review ID:</strong> ${esc(item.review_id)}</p>\n<p><strong>Application ID:</strong> ${esc(item.application_id)}</p>\n${body}\n<p style=\"margin-top:24px;font-size:10pt;\"><em>Documento generado automáticamente por n8n. Esta revisión es demostrativa y no representa una aprobación crediticia final.</em></p>\n</body>\n</html>`;\n}\n\nconst commonRows = [\n  [\"Review ID\", item.review_id],\n  [\"Application ID\", item.application_id],\n  [\"Nombre\", item.nombre],\n  [\"Email\", item.email],\n  [\"Teléfono\", item.telefono],\n  [\"Ciudad\", item.ciudad],\n  [\"Fecha de revisión\", item.fecha_revision]\n];\n\nconst folders = [\n  {\n    folderLabel: \"01 - Identificacion\",\n    folderId: $node[\"Crear Subcarpeta 01 - Identificacion\"].json.id,\n    baseName: \"01_identificacion\",\n    title: \"Reporte de Identificación del Solicitante\",\n    rows: [\n      ...commonRows,\n      [\"Identificación oficial\", item.documentos?.identificacion_oficial ? \"Recibida\" : \"Pendiente\"],\n      [\"Comprobante de domicilio\", item.documentos?.comprobante_domicilio ? \"Recibido\" : \"Pendiente\"],\n      [\"RFC\", item.documentos?.rfc ? \"Recibido\" : \"Pendiente\"],\n      [\"CURP\", item.documentos?.curp ? \"Recibida\" : \"Pendiente\"],\n      [\"Comentario\", \"Validación documental básica para identificación del prospecto.\"]\n    ]\n  },\n  {\n    folderLabel: \"02 - Ingresos\",\n    folderId: $node[\"Crear Subcarpeta 02 - Ingresos\"].json.id,\n    baseName: \"02_ingresos\",\n    title: \"Reporte de Ingresos y Capacidad de Pago\",\n    rows: [\n      ...commonRows,\n      [\"Ingreso mensual\", item.ingreso_mensual],\n      [\"Antigüedad laboral años\", item.antiguedad_laboral_anios],\n      [\"Score crediticio\", item.score_crediticio],\n      [\"Pago estimado mensual\", item.pago_estimado_mensual],\n      [\"Relación pago-ingreso\", `${item.relacion_pago_ingreso}%`],\n      [\"Comprobante de ingresos\", item.documentos?.comprobante_ingresos ? \"Recibido\" : \"Pendiente\"],\n      [\"Resultado\", item.resultado_revision]\n    ]\n  },\n  {\n    folderLabel: \"03 - Estados de Cuenta\",\n    folderId: $node[\"Crear Subcarpeta 03 - Estados de Cuenta\"].json.id,\n    baseName: \"03_estados_cuenta\",\n    title: \"Reporte de Estados de Cuenta\",\n    rows: [\n      ...commonRows,\n      [\"Estados de cuenta\", item.documentos?.estados_cuenta ? \"Recibidos\" : \"Pendientes\"],\n      [\"Documentos completos\", `${item.documentos_completos}/7`],\n      [\"Porcentaje documentos completos\", `${item.porcentaje_documentos_completos}%`],\n      [\"Documentos faltantes\", item.documentos_faltantes_texto],\n      [\"Siguiente acción\", item.siguiente_accion]\n    ]\n  },\n  {\n    folderLabel: \"04 - Documentos de Propiedad\",\n    folderId: $node[\"Crear Subcarpeta 04 - Documentos de Propiedad\"].json.id,\n    baseName: \"04_propiedad\",\n    title: \"Reporte de Propiedad y Financiamiento\",\n    rows: [\n      ...commonRows,\n      [\"Tipo de propiedad\", item.tipo_propiedad],\n      [\"Valor propiedad\", item.valor_propiedad],\n      [\"Enganche disponible\", item.enganche_disponible],\n      [\"Monto a financiar\", item.monto_financiar],\n      [\"Porcentaje enganche\", `${item.porcentaje_enganche}%`],\n      [\"Documentos de propiedad\", item.documentos?.documentos_propiedad ? \"Recibidos\" : \"Pendientes\"]\n    ]\n  },\n  {\n    folderLabel: \"05 - Revision Interna\",\n    folderId: $node[\"Crear Subcarpeta 05 - Revision Interna\"].json.id,\n    baseName: \"05_revision_interna\",\n    title: \"Reporte Interno de Riesgo y Decisión Operativa\",\n    rows: [\n      ...commonRows,\n      [\"Score interno\", item.score_interno],\n      [\"Nivel de riesgo\", item.nivel_riesgo],\n      [\"Resultado revisión\", item.resultado_revision],\n      [\"Prioridad\", item.prioridad],\n      [\"Resumen IA\", item.resumen_ia],\n      [\"Comentarios de riesgo\", item.comentarios_riesgo],\n      [\"Siguiente acción\", item.siguiente_accion]\n    ]\n  }\n];\n\nconst output = [];\n\nfor (const folder of folders) {\n  const wordName = `${folder.baseName}_${item.review_id}.doc`;\n  const wordContent = wordHtml(folder.title, [{ title: folder.folderLabel, rows: folder.rows }]);\n  output.push({\n    json: {\n      review_id: item.review_id,\n      application_id: item.application_id,\n      folder_label: folder.folderLabel,\n      folder_id: folder.folderId,\n      file_name: wordName,\n      file_type: \"word-compatible-doc\"\n    },\n    binary: {\n      data: {\n        data: Buffer.from(wordContent, \"utf8\").toString(\"base64\"),\n        mimeType: \"application/msword\",\n        fileName: wordName\n      }\n    }\n  });\n\n  const csvName = `${folder.baseName}_${item.review_id}.csv`;\n  const csvContent = csvFromRows([[\"Campo\", \"Valor\"], ...folder.rows]);\n  output.push({\n    json: {\n      review_id: item.review_id,\n      application_id: item.application_id,\n      folder_label: folder.folderLabel,\n      folder_id: folder.folderId,\n      file_name: csvName,\n      file_type: \"excel-compatible-csv\"\n    },\n    binary: {\n      data: {\n        data: Buffer.from(csvContent, \"utf8\").toString(\"base64\"),\n        mimeType: \"text/csv\",\n        fileName: csvName\n      }\n    }\n  });\n}\n\nreturn output;"
+      },
+      "id": "79a7cdef-190c-4786-81ae-4106384dbb8c",
+      "name": "Preparar Reportes Word y Excel por Carpeta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3600,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "upload",
+        "name": "={{ $json.file_name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.folder_id }}"
+        },
+        "options": {}
+      },
+      "id": "433173cc-f0f2-4404-ac86-8631c949a9eb",
+      "name": "Guardar Reportes Word y Excel en Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3840,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $node[\"Generar Resumen Interno\"].json;\nconst uploaded = $input.all().map((item, index) => {\n  const fileId = item.json.id || item.json.fileId || null;\n  const name = item.json.name || item.json.file_name || item.json.originalFilename || `reporte_${index + 1}`;\n  return {\n    file_name: name,\n    file_id: fileId,\n    file_url: item.json.webViewLink || (fileId ? `https://drive.google.com/file/d/${fileId}` : null)\n  };\n});\n\nreturn [\n  {\n    json: {\n      ...base,\n      report_files: uploaded,\n      report_files_count: uploaded.length,\n      word_reports_count: uploaded.filter(file => String(file.file_name).toLowerCase().endsWith(\".doc\")).length,\n      excel_reports_count: uploaded.filter(file => String(file.file_name).toLowerCase().endsWith(\".csv\")).length,\n      report_files_urls_text: uploaded.map(file => `${file.file_name}: ${file.file_url || \"Sin URL\"}`).join(\"\\n\")\n    }\n  }\n];"
+      },
+      "id": "258547ae-334f-4f3c-a7a2-3f3a38dce5ed",
+      "name": "Consolidar Reportes Guardados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4080,
+        160
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - Recibir Caso de Financiamiento": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Datos": {
+      "main": [
+        [
+          {
+            "node": "Validar Datos del Solicitante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Datos del Solicitante": {
+      "main": [
+        [
+          {
+            "node": "¿Datos válidos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Datos válidos?": {
+      "main": [
+        [
+          {
+            "node": "Buscar Revisión en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear Log Error Validación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Log Error Validación": {
+      "main": [
+        [
+          {
+            "node": "Responder Error de Validación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Revisión en Airtable": {
+      "main": [
+        [
+          {
+            "node": "¿Existe revisión?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Existe revisión?": {
+      "main": [
+        [
+          {
+            "node": "Marcar Revisión Existente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar Nueva Revisión",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar Revisión Existente": {
+      "main": [
+        [
+          {
+            "node": "Crear Carpeta Principal Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar Nueva Revisión": {
+      "main": [
+        [
+          {
+            "node": "Crear Carpeta Principal Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Carpeta Principal Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Crear Subcarpeta 01 - Identificacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Subcarpeta 01 - Identificacion": {
+      "main": [
+        [
+          {
+            "node": "Crear Subcarpeta 02 - Ingresos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Subcarpeta 02 - Ingresos": {
+      "main": [
+        [
+          {
+            "node": "Crear Subcarpeta 03 - Estados de Cuenta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Subcarpeta 03 - Estados de Cuenta": {
+      "main": [
+        [
+          {
+            "node": "Crear Subcarpeta 04 - Documentos de Propiedad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Subcarpeta 04 - Documentos de Propiedad": {
+      "main": [
+        [
+          {
+            "node": "Crear Subcarpeta 05 - Revision Interna",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Subcarpeta 05 - Revision Interna": {
+      "main": [
+        [
+          {
+            "node": "Evaluar Checklist Documental",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluar Checklist Documental": {
+      "main": [
+        [
+          {
+            "node": "Registrar Documento Identificacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Documento Identificacion": {
+      "main": [
+        [
+          {
+            "node": "Registrar Documento Comprobante Domicilio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Documento Comprobante Domicilio": {
+      "main": [
+        [
+          {
+            "node": "Registrar Documento Comprobante Ingresos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Documento Comprobante Ingresos": {
+      "main": [
+        [
+          {
+            "node": "Registrar Documento Estados de Cuenta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Documento Estados de Cuenta": {
+      "main": [
+        [
+          {
+            "node": "Registrar Documento RFC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Documento RFC": {
+      "main": [
+        [
+          {
+            "node": "Registrar Documento CURP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Documento CURP": {
+      "main": [
+        [
+          {
+            "node": "Registrar Documento Propiedad",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Documento Propiedad": {
+      "main": [
+        [
+          {
+            "node": "Calcular Score Financiero",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular Score Financiero": {
+      "main": [
+        [
+          {
+            "node": "OpenAI - Analizar Riesgo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Analizar Riesgo": {
+      "main": [
+        [
+          {
+            "node": "Parsear IA y Preparar Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear IA y Preparar Resultado": {
+      "main": [
+        [
+          {
+            "node": "Generar Resumen Interno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Resumen Interno": {
+      "main": [
+        [
+          {
+            "node": "Preparar Reportes Word y Excel por Carpeta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Revisión de Caso": {
+      "main": [
+        [
+          {
+            "node": "Crear Tarea de Revisión de Riesgo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Tarea de Revisión de Riesgo": {
+      "main": [
+        [
+          {
+            "node": "Crear Log Éxito",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Log Éxito": {
+      "main": [
+        [
+          {
+            "node": "Responder Resultado Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Reportes Word y Excel por Carpeta": {
+      "main": [
+        [
+          {
+            "node": "Guardar Reportes Word y Excel en Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar Reportes Word y Excel en Drive": {
+      "main": [
+        [
+          {
+            "node": "Consolidar Reportes Guardados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consolidar Reportes Guardados": {
+      "main": [
+        [
+          {
+            "node": "Registrar Revisión de Caso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "versionId": "00000000-0000-0000-0000-000000000000",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
