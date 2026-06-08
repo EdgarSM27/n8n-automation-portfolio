@@ -1,0 +1,33 @@
+{
+  "success": true,
+  "message": "Caso de financiamiento revisado correctamente.",
+  "review_id": "FIN-REV-1780769999999",
+  "application_id": "FIN-APP-DEMO-001",
+  "nombre": "Carlos Ramirez",
+  "monto_financiar": 1500000,
+  "porcentaje_enganche": 16.67,
+  "pago_estimado_mensual": 18002.52,
+  "relacion_pago_ingreso": 40.01,
+  "documentos_completos": 4,
+  "documentos_faltantes": [
+    "Comprobante de ingresos",
+    "Estados de cuenta",
+    "Documentos de propiedad"
+  ],
+  "porcentaje_documentos_completos": 57.14,
+  "score_interno": 72,
+  "nivel_riesgo": "Medio",
+  "resultado_revision": "Revisión manual requerida",
+  "prioridad": "Alta",
+  "siguiente_accion": "Solicitar documentos faltantes y validar capacidad de pago.",
+  "expediente_url": "https://drive.google.com/drive/folders/DRIVE_FOLDER_ID",
+  "checklist_created": true,
+  "internal_summary_created": true,
+  "report_files_created": true,
+  "report_files_count": 10,
+  "word_reports_count": 5,
+  "excel_reports_count": 5,
+  "task_created": true,
+  "log_created": true,
+  "note": "Esta revisión automatizada es demostrativa y no representa una aprobación crediticia final."
+}
