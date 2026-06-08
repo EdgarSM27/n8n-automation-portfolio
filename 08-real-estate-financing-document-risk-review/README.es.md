@@ -4,23 +4,26 @@
 
 ## Objetivo
 
-Construir una automatización avanzada en n8n para una financiera inmobiliaria que reciba un caso de financiamiento, valide los datos del solicitante, cree una estructura de carpetas en Google Drive, evalúe un checklist documental, calcule métricas financieras de riesgo, analice el caso con OpenAI, cree tareas de revisión, genere reportes compatibles con Word y Excel, almacene logs de automatización y devuelva una respuesta JSON estructurada.
+Construir una automatización avanzada en n8n para una financiera inmobiliaria que reciba un caso de financiamiento, valide los datos del solicitante, cree una estructura de carpetas en Google Drive, evalúe un checklist documental, calcule métricas financieras de riesgo, analice el caso con OpenAI, cree tareas de revisión, genere reportes compatibles con Word y Excel, almacene logs de automatización, permita visualizar la información mediante un panel en Airtable y devuelva una respuesta JSON estructurada.
 
 ## Problema de negocio
 
 Las financieras inmobiliarias necesitan revisar información del solicitante, capacidad financiera, datos de la propiedad, documentación recibida y nivel de riesgo antes de continuar con un proceso de financiamiento.
 
-Cuando este proceso se realiza manualmente, puede volverse lento, inconsistente y difícil de auditar. El equipo debe revisar documentos faltantes, calcular métricas básicas, asignar tareas de seguimiento, crear carpetas, generar reportes internos y mantener trazabilidad en varias herramientas.
+Cuando este proceso se realiza manualmente, puede volverse lento, inconsistente y difícil de auditar. El equipo debe revisar documentos faltantes, calcular métricas básicas, asignar tareas de seguimiento, crear carpetas, generar reportes internos, revisar información operativa y mantener trazabilidad en varias herramientas.
 
 ## Solución
 
 Este workflow recibe un caso de revisión de financiamiento mediante un webhook. Normaliza y valida la información, busca si ya existe una revisión en Airtable, crea una carpeta principal en Google Drive, genera subcarpetas por categoría documental, evalúa un checklist de documentos, registra cada documento en Airtable, calcula métricas financieras de riesgo, utiliza OpenAI para analizar el caso, genera reportes internos, registra la revisión en Airtable, crea una tarea de seguimiento, guarda logs de automatización y devuelve una respuesta completa.
+
+El proyecto también incluye una interfaz en Airtable para visualizar casos de financiamiento, estado documental, tareas de seguimiento, reportes generados y logs de automatización.
 
 ## Herramientas utilizadas
 
 * n8n
 * Airtable
 * Airtable REST API
+* Interfaz de Airtable
 * Google Drive
 * OpenAI API
 * Webhook
@@ -35,6 +38,7 @@ Este workflow recibe un caso de revisión de financiamiento mediante un webhook.
 * Generación de reportes compatibles con Word
 * Generación de reportes compatibles con Excel
 * Logs de automatización
+* Diseño de panel operativo
 
 ## Lógica del workflow
 
@@ -324,6 +328,52 @@ Los archivos `.csv` son archivos compatibles con Excel.
 * Resultado de revisión
 * Prioridad de seguimiento
 
+## Panel en Airtable
+
+Además del workflow en n8n, este proyecto incluye una interfaz en Airtable para visualizar la información generada por la automatización.
+
+El panel permite revisar casos de financiamiento, documentos pendientes, tareas de seguimiento, reportes generados y logs de automatización desde una vista organizada para operación interna.
+
+### Páginas del panel
+
+El panel en Airtable incluye las siguientes páginas:
+
+* Resumen General
+* Casos por Estado
+* Detalle del Caso
+* Documentos
+* Documentos Pendientes
+* Tareas de Seguimiento
+* Casos de Riesgo Alto
+* Logs
+* Reportes
+
+### Información mostrada
+
+El panel utiliza datos de las siguientes tablas:
+
+* Financing Case Reviews
+* Document Checklist
+* Risk Review Tasks
+* Risk Automation Logs
+
+### Funcionalidades del panel
+
+* Visualización general de casos revisados.
+* Conteo de casos por nivel de riesgo.
+* Revisión de documentos recibidos y pendientes.
+* Seguimiento de tareas generadas por la automatización.
+* Consulta de reportes generados en Google Drive.
+* Revisión de logs de automatización.
+* Filtros por nivel de riesgo, prioridad, estado, tipo de propiedad y fecha de revisión.
+* Vista detallada de cada caso usando Review ID y Application ID.
+
+### Valor del panel
+
+El panel permite que la información generada por n8n sea más fácil de revisar en Airtable. En lugar de consultar únicamente tablas, el usuario puede analizar el estado de los casos, revisar documentos pendientes, consultar tareas y acceder a los reportes generados desde una interfaz organizada.
+
+Este componente complementa el workflow principal al convertir los datos automatizados en una herramienta visual de seguimiento operativo.
+
 ## Capturas
 
 ### Workflow completo en n8n
@@ -366,6 +416,34 @@ Los archivos `.csv` son archivos compatibles con Excel.
 
 ![Reportes compatibles con Excel generados](screenshots/10-generated-excel-reports.png)
 
+### Resumen General en Airtable
+
+![Resumen General en Airtable](screenshots/11-airtable-dashboard-summary.png)
+
+### Casos por Estado en Airtable
+
+![Casos por Estado en Airtable](screenshots/12-airtable-cases-by-status.png)
+
+### Detalle del Caso en Airtable
+
+![Detalle del Caso en Airtable](screenshots/13-airtable-case-detail.png)
+
+### Documentos en Airtable
+
+![Documentos en Airtable](screenshots/14-airtable-document-checklist.png)
+
+### Tareas de Seguimiento en Airtable
+
+![Tareas de Seguimiento en Airtable](screenshots/15-airtable-follow-up-tasks.png)
+
+### Reportes en Airtable
+
+![Reportes en Airtable](screenshots/16-airtable-reports-view.png)
+
+### Logs en Airtable
+
+![Logs en Airtable](screenshots/17-airtable-automation-logs.png)
+
 ## Valor de negocio
 
 * Automatiza la recepción de casos de revisión de financiamiento.
@@ -378,6 +456,7 @@ Los archivos `.csv` son archivos compatibles con Excel.
 * Genera reportes compatibles con Word y Excel.
 * Crea tareas operativas de seguimiento.
 * Guarda logs para trazabilidad y auditoría.
+* Incluye un panel en Airtable para revisar casos, documentos, reportes, tareas y logs.
 * Representa una automatización compleja de back office alineada con operaciones de financiamiento inmobiliario.
 
 ## Aviso
