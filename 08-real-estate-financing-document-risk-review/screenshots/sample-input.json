@@ -1,0 +1,24 @@
+{
+  "application_id": "FIN-APP-DEMO-001",
+  "nombre": "Carlos Ramirez",
+  "email": "carlos.ramirez@example.com",
+  "telefono": "6671112233",
+  "ciudad": "Culiacan",
+  "tipo_propiedad": "Casa",
+  "valor_propiedad": 1800000,
+  "enganche_disponible": 300000,
+  "ingreso_mensual": 45000,
+  "plazo_deseado_anios": 15,
+  "antiguedad_laboral_anios": 3,
+  "score_crediticio": 690,
+  "documentos": {
+    "identificacion_oficial": true,
+    "comprobante_domicilio": true,
+    "comprobante_ingresos": false,
+    "estados_cuenta": false,
+    "rfc": true,
+    "curp": true,
+    "documentos_propiedad": false
+  },
+  "mensaje": "El cliente quiere avanzar con la revisión de financiamiento y tiene algunos documentos pendientes."
+}
