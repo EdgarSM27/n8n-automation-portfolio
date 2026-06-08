@@ -4,35 +4,44 @@
 
 Portafolio enfocado en automatización de procesos de negocio utilizando n8n, Airtable, Google Drive, OpenAI API, APIs REST, JSON, webhooks, validación de datos y documentación técnica de workflows.
 
-Este repositorio contiene proyectos prácticos de automatización diseñados para resolver problemas reales de negocio, como captación de leads, detección de duplicados, seguimiento de clientes, organización de expedientes, reportes automáticos, integración con APIs, clasificación de mensajes con IA, operaciones avanzadas tipo CRM y precalificación para financiamiento inmobiliario.
+Este repositorio contiene proyectos prácticos de automatización diseñados para resolver problemas reales de negocio, como captación de leads, detección de duplicados, seguimiento de clientes, organización de expedientes, reportes automáticos, integración con APIs, clasificación de mensajes con IA, operaciones avanzadas tipo CRM, precalificación para financiamiento inmobiliario y revisión documental/riesgo para procesos de financiamiento.
 
 ## Habilidades demostradas
 
-- Automatización de flujos con n8n
-- Captura de datos mediante webhooks
-- Integración con APIs REST
-- Solicitudes GET, POST y PUT
-- Manejo y transformación de JSON
-- Integración con Airtable
-- Automatización con Google Drive
-- Detección de duplicados
-- Validación de datos de entrada
-- Manejo de errores
-- Respuestas API estructuradas
-- Documentación de procesos de negocio
-- Autenticación basada en token
-- Integración con Google OAuth2
-- Clasificación de mensajes con IA
-- Integración con OpenAI API
-- Prompt engineering para salidas JSON estructuradas
-- Automatización avanzada de operaciones de leads
-- Arquitectura de workflows tipo CRM
-- Creación de tareas de seguimiento
-- Registro de logs y trazabilidad de automatizaciones
-- Precalificación para financiamiento inmobiliario
-- Lógica básica de validación financiera
-- Cálculo de relación pago-ingreso
-- Automatización de solicitudes de financiamiento
+* Automatización de flujos con n8n
+* Captura de datos mediante webhooks
+* Integración con APIs REST
+* Solicitudes GET, POST y PUT
+* Manejo y transformación de JSON
+* Integración con Airtable
+* Automatización con Google Drive
+* Detección de duplicados
+* Validación de datos de entrada
+* Manejo de errores
+* Respuestas API estructuradas
+* Documentación de procesos de negocio
+* Autenticación basada en token
+* Integración con Google OAuth2
+* Clasificación de mensajes con IA
+* Integración con OpenAI API
+* Prompt engineering para salidas JSON estructuradas
+* Automatización avanzada de operaciones de leads
+* Arquitectura de workflows tipo CRM
+* Creación de tareas de seguimiento
+* Registro de logs y trazabilidad de automatizaciones
+* Precalificación para financiamiento inmobiliario
+* Lógica básica de validación financiera
+* Cálculo de relación pago-ingreso
+* Automatización de solicitudes de financiamiento
+* Automatización de checklist documental
+* Automatización de revisión de riesgo
+* Generación de reportes compatibles con Word
+* Generación de reportes compatibles con Excel
+* Automatización de estructura de carpetas en Google Drive
+* Diseño de interfaces en Airtable
+* Creación de paneles operativos
+* Panel de revisión de casos
+* Panel de seguimiento documental
 
 ## Proyectos
 
@@ -42,13 +51,13 @@ Este workflow recibe información de leads mediante un webhook, valida los campo
 
 Herramientas principales:
 
-- n8n
-- Webhook
-- Airtable API
-- Nodos HTTP Request
-- Nodo JavaScript Code
-- JSON
-- Lógica REST API
+* n8n
+* Webhook
+* Airtable API
+* Nodos HTTP Request
+* Nodo JavaScript Code
+* JSON
+* Lógica REST API
 
 Estado: Completado
 
@@ -60,14 +69,14 @@ Este workflow recibe información de clientes mediante un webhook, valida los da
 
 Herramientas principales:
 
-- n8n
-- Google Drive
-- Airtable API
-- Webhook
-- Nodos HTTP Request
-- Nodo JavaScript Code
-- JSON
-- Google OAuth2
+* n8n
+* Google Drive
+* Airtable API
+* Webhook
+* Nodos HTTP Request
+* Nodo JavaScript Code
+* JSON
+* Google OAuth2
 
 Estado: Completado
 
@@ -79,14 +88,14 @@ Este workflow genera un reporte automático de seguimiento utilizando datos de A
 
 Herramientas principales:
 
-- n8n
-- Airtable API
-- Google Drive
-- Nodos HTTP Request
-- Nodo JavaScript Code
-- JSON
-- Generación de archivo binario
-- Google OAuth2
+* n8n
+* Airtable API
+* Google Drive
+* Nodos HTTP Request
+* Nodo JavaScript Code
+* JSON
+* Generación de archivo binario
+* Google OAuth2
 
 Estado: Completado
 
@@ -98,14 +107,14 @@ Este workflow demuestra integración con APIs REST utilizando solicitudes GET, P
 
 Herramientas principales:
 
-- n8n
-- Nodos HTTP Request
-- Nodo JavaScript Code
-- Métodos REST API
-- Solicitudes GET, POST y PUT
-- JSON
-- Header Bearer token
-- Validación de respuestas
+* n8n
+* Nodos HTTP Request
+* Nodo JavaScript Code
+* Métodos REST API
+* Solicitudes GET, POST y PUT
+* JSON
+* Header Bearer token
+* Validación de respuestas
 
 Estado: Completado
 
@@ -117,16 +126,16 @@ Este workflow recibe un mensaje de prospecto mediante un webhook, valida los dat
 
 Herramientas principales:
 
-- n8n
-- OpenAI API
-- Airtable API
-- Webhook
-- Nodos HTTP Request
-- Nodo JavaScript Code
-- JSON
-- Prompt engineering
-- Salida estructurada con IA
-- Autenticación basada en token
+* n8n
+* OpenAI API
+* Airtable API
+* Webhook
+* Nodos HTTP Request
+* Nodo JavaScript Code
+* JSON
+* Prompt engineering
+* Salida estructurada con IA
+* Autenticación basada en token
 
 Estado: Completado
 
@@ -138,18 +147,18 @@ Este workflow avanzado recibe un lead de ventas mediante un webhook, valida los 
 
 Herramientas principales:
 
-- n8n
-- OpenAI API
-- Airtable API
-- Google Drive
-- Webhook
-- Nodos HTTP Request
-- Nodo JavaScript Code
-- JSON
-- Google OAuth2
-- Detección de duplicados
-- Creación de tareas de seguimiento
-- Registro de logs de automatización
+* n8n
+* OpenAI API
+* Airtable API
+* Google Drive
+* Webhook
+* Nodos HTTP Request
+* Nodo JavaScript Code
+* JSON
+* Google OAuth2
+* Detección de duplicados
+* Creación de tareas de seguimiento
+* Registro de logs de automatización
 
 Estado: Completado
 
@@ -161,19 +170,62 @@ Este workflow recibe una solicitud de financiamiento inmobiliario mediante un we
 
 Herramientas principales:
 
-- n8n
-- OpenAI API
-- Airtable API
-- Google Drive
-- Webhook
-- Nodos HTTP Request
-- Nodo JavaScript Code
-- JSON
-- Google OAuth2
-- Lógica de precalificación financiera
-- Cálculo de relación pago-ingreso
-- Creación de tareas de seguimiento
-- Registro de logs de automatización
+* n8n
+* OpenAI API
+* Airtable API
+* Google Drive
+* Webhook
+* Nodos HTTP Request
+* Nodo JavaScript Code
+* JSON
+* Google OAuth2
+* Lógica de precalificación financiera
+* Cálculo de relación pago-ingreso
+* Creación de tareas de seguimiento
+* Registro de logs de automatización
+
+Estado: Completado
+
+---
+
+### [08 - Workflow de Revisión Documental y Riesgo para Financiamiento Inmobiliario](./08-real-estate-financing-document-risk-review)
+
+Este workflow avanzado recibe un caso de revisión de financiamiento inmobiliario mediante un webhook, valida los datos del solicitante, crea una estructura de carpetas en Google Drive, evalúa un checklist documental, calcula métricas financieras de riesgo, analiza el caso con OpenAI, crea tareas de revisión, genera reportes compatibles con Word y Excel, almacena logs de automatización y devuelve una respuesta JSON estructurada.
+
+Este proyecto también incluye un panel/interfaz en Airtable para revisar casos de financiamiento, estado documental, tareas de seguimiento, reportes generados y logs de automatización.
+
+Herramientas principales:
+
+* n8n
+* OpenAI API
+* Airtable API
+* Interfaz de Airtable
+* Google Drive
+* Webhook
+* Nodos HTTP Request
+* Nodo JavaScript Code
+* JSON
+* Google OAuth2
+* Automatización de checklist documental
+* Lógica de revisión de riesgo financiero
+* Análisis de riesgo con IA
+* Generación de reportes compatibles con Word
+* Generación de reportes compatibles con Excel
+* Diseño de panel en Airtable
+* Creación de tareas de seguimiento
+* Registro de logs de automatización
+
+Páginas incluidas en el panel:
+
+* Resumen General
+* Casos por Estado
+* Detalle del Caso
+* Documentos
+* Documentos Pendientes
+* Tareas de Seguimiento
+* Casos de Riesgo Alto
+* Logs
+* Reportes
 
 Estado: Completado
 
@@ -266,6 +318,33 @@ n8n-automation-portfolio/
 │       ├── 06-financing-automation-log-record.png
 │       └── 07-google-drive-folder.png
 │
+├── 08-real-estate-financing-document-risk-review/
+│   ├── README.md
+│   ├── README.es.md
+│   ├── workflow.json
+│   ├── sample-input.json
+│   ├── sample-input-invalid.json
+│   ├── sample-output-success.json
+│   ├── sample-output-validation-error.json
+│   └── screenshots/
+│       ├── 01-n8n-workflow.png
+│       ├── 02-success-response.png
+│       ├── 03-validation-error-response.png
+│       ├── 04-financing-case-review-record.png
+│       ├── 05-document-checklist-records.png
+│       ├── 06-risk-review-task-record.png
+│       ├── 07-risk-automation-log-record.png
+│       ├── 08-google-drive-folder-structure.png
+│       ├── 09-generated-word-reports.png
+│       ├── 10-generated-excel-reports.png
+│       ├── 11-airtable-dashboard-summary.png
+│       ├── 12-airtable-cases-by-status.png
+│       ├── 13-airtable-case-detail.png
+│       ├── 14-airtable-document-checklist.png
+│       ├── 15-airtable-follow-up-tasks.png
+│       ├── 16-airtable-reports-view.png
+│       └── 17-airtable-automation-logs.png
+│
 └── docs/
     ├── security.md
     ├── error-handling.md
@@ -286,6 +365,7 @@ PARENT_FOLDER_ID_HERE
 REPORTS_FOLDER_ID_HERE
 ADVANCED_LEADS_FOLDER_ID_HERE
 FINANCING_APPLICATIONS_FOLDER_ID_HERE
+RISK_REVIEW_FOLDER_ID_HERE
 GOOGLE_DRIVE_CREDENTIAL_PLACEHOLDER
 ```
 
